@@ -18,3 +18,4 @@ threadpoolctl==3.5.0
 tifffile==2024.5.10
 trimesh==4.4.0
 tzdata==2024.1
+natsort
