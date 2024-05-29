@@ -33,6 +33,7 @@ def render_mesh_textured(
     background_color=None,
     output_path=None,
     output_filename=None,
+    orientation='frontal',
 ):
     batch_size = 1
 
@@ -42,7 +43,7 @@ def render_mesh_textured(
 
     # default camera position
     if cam_pos is None:
-        cam_pos = torch.tensor([2.0, 0.35, 0])
+        cam_pos = torch.tensor([.5, 3, 1.2])
 
     # default mesh rotation
     if mesh_rot is None:
@@ -69,12 +70,26 @@ def render_mesh_textured(
         diffuse_color=[[0, 0, 0]],
         specular_color=[[0, 0, 0]],
     )
+    if orientation == 'frontal':
+        frontal = True
+        side = False
+    else:
+        side = True
+        frontal = False
 
     # Initialize a camera.
     # With world coordinates +Y up, +X left and +Z in, the front of the mesh is facing the +Z direction.
     # So we move the camera by mesh_rotation in the azimuth direction.
-    R, T = look_at_view_transform(cam_pos[0], azimut, mesh_rot)
-    T[0, 1] += cam_pos[1]
+
+    if frontal:
+        R, T = look_at_view_transform(eye = ((0.5,2,1.0),),
+                                      at = ((0.5,0.8,1.2),),
+                                      up = ((0, 0, 1),))
+    if side:
+        R, T = look_at_view_transform(eye = ((2.5,0.8,1.0),),
+                                      at = ((0.5,0.8,1.2),),
+                                      up = ((0, 0, 1),))
+    ##T[0, 1] += cam_pos[1]
     # cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
     cameras = OrthographicCameras(device=device, T=T, R=R)
 
