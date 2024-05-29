@@ -1,2 +1,5 @@
-teste.py
+src/teste.py
+.idea/
+venv/
+env/
 __pycache__

@@ -13,7 +13,7 @@ from pytorch3d.io import load_obj
 
 def test1() -> None:
     mesh = trimesh.load('teste.obj',process=False)
-    texture_image = Image.open('TEXTURE.png')
+    texture_image = Image.open('../TEXTURE.png')
     tex = trimesh.visual.TextureVisuals(image=texture_image)
     mesh.visual.texture = tex
     mesh.show()
@@ -29,11 +29,11 @@ def test3() -> None :
 
 
 def main(debug=False) -> None:
-    with Image.open("TEXTURE.png") as texture_image:
+    with Image.open("../TEXTURE.png") as texture_image:
         np_image = np.asarray(texture_image.convert("RGB")).astype(np.float32)
 
     smpl = SMPL.create(
-        model_path="sample_data/SMPL/models/",
+        model_path="../sample_data/SMPL/models/",
         gender = "male",
         model_type="smpl",
     )
@@ -44,18 +44,22 @@ def main(debug=False) -> None:
     
 
     #load mesh
+    _,_,aux_uv = load_obj('../sample_data/smpl_uv.obj')
 
-    mesh = load_obj("sample_data/SMPL_male_default_resolution.obj")
-    _,facets_verts,aux = mesh
+    mesh = load_obj("../sample_data/049999_pose.obj")
+    verts,facets_verts,aux = mesh
+    facets_verts = np.array(facets_verts,dtype=object)
 
-    verts_uvs = aux.verts_uvs[None,...]
+    # _,facets_verts,aux = mesh
+    verts_uvs = aux_uv.verts_uvs[None,...]
     faces_uvs = facets_verts.textures_idx[None,...]
 
-    verts = smpl_out.vertices[0]
+    #verts_smpl = smpl_out.vertices[0]
+    #print(verts_smpl.shape)
     faces = smpl.faces_tensor
 
 
-    if not os.path.isfile("sample_data/front_render.png") or debug:  
+    if not os.path.isfile("../sample_data/front_render.png") or debug:
         print("[INFO] Rendering front image")  
         render_mesh_textured(
                 "cpu",
@@ -67,11 +71,11 @@ def main(debug=False) -> None:
                 image_size=1024,  # image resolution
                 cam_pos=torch.tensor([2.0, 0.35, 0]),  # camera position
                 mesh_rot=0,  # mesh rotation in Y axis in degrees
-                output_path="sample_data/",
+                output_path="../sample_data/",
                 output_filename="front_render.png",
             )
     
-    if not os.path.isfile("sample_data/side_render.png") or debug:
+    if not os.path.isfile("../sample_data/side_render.png") or debug:
         print("[INFO] Rendering side image")
         render_mesh_textured(
             "cpu",
@@ -83,7 +87,7 @@ def main(debug=False) -> None:
             image_size=1024,  # image resolution
             cam_pos=torch.tensor([2.0, 0.35, 0]),  # camera position
             mesh_rot=90,  # mesh rotation in Y axis in degrees
-            output_path="sample_data/",
+            output_path="../sample_data/",
             output_filename="side_render.png",
         )
     
