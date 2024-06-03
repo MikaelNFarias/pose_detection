@@ -16,31 +16,31 @@ from pytorch3d.renderer import (
     BlendParams,
     MeshRenderer,
     OrthographicCameras,
+    FoVPerspectiveCameras,
 )
 
 
 def render_mesh_textured(
-    device,
-    verts,
-    textures,
-    verts_uvs,
-    faces_uvs,
-    faces_vertices,
-    image_size=None,
-    cam_pos=None,
-    azimut=0,
-    mesh_rot=None,
-    background_color=None,
-    output_path=None,
-    output_filename=None,
-    orientation='frontal',
+    device: str,
+    verts: np.ndarray | torch.Tensor,
+    textures : np.ndarray | torch.Tensor,
+    verts_uvs : np.ndarray | torch.Tensor,
+    faces_uvs : np.ndarray | torch.Tensor,
+    faces_vertices : np.ndarray | torch.Tensor,
+    image_size :int = None,
+    cam_pos : np.ndarray | torch.Tensor = None,
+    azimut : int = 0,
+    mesh_rot: int = None,
+    background_color : np.ndarray | torch.Tensor = None,
+    output_path: str = None,
+    output_filename: str = None,
     up = None,
     at = None,
-    mean_position = None,
-    cam_dist = 1.0,
-    x_axis_weight = 1.0,
-    y_axis_weight = 1.0,
-    z_axis_weight = 1.0,
+    cam_dist: float = 1.0,
+    x_axis_weight: float = 1.0,
+    y_axis_weight: float = 1.0,
+    z_axis_weight: float = 1.0,
+    background_image = None,
 ):
     batch_size = 1
 
@@ -90,29 +90,29 @@ def render_mesh_textured(
         diffuse_color=[[0, 0, 0]],
         specular_color=[[0, 0, 0]],
     )
-    if orientation == 'frontal':
-        frontal = True
-        side = False
-    else:
-        side = True
-        frontal = False
+    # if orientation == 'frontal':
+        # frontal = True
+        # side = False
+    # else:
+        # side = True
+        # frontal = False
 
     # Initialize a camera.
     # With world coordinates +Y up, +X left and +Z in, the front of the mesh is facing the +Z direction.
     # So we move the camera by mesh_rotation in the azimuth direction.
 
     #R,T = look_at_view_transform(at,
-    if frontal:
+    if True:
         R, T = look_at_view_transform(eye = [eye_position],
                                       at = [at_position],
                                       up = [[0, 0, 1]])
-    if side:
-        R, T = look_at_view_transform(eye = ((2.5,0.8,1.0),),
-                                      at = ((0.5,0.8,1.2),),
-                                      up = ((0, 0, 1),))
+    ##if side:
+    ##    R, T = look_at_view_transform(eye = ((2.5,0.8,1.0),),
+    ##                                  at = ((0.5,0.8,1.2),),
+    ##                                  up = ((0, 0, 1),))
     #T[0, 1] += cam_pos[1]
-    ##cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
-    cameras = OrthographicCameras(device=device, T=T, R=R)
+    cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
+    #cameras = OrthographicCameras(device=device, T=T, R=R)
 
     # Define the settings for rasterization and shading. Here we set the output image to be of size
     # image_size_inximage_size_in. As we are rendering images for visualization purposes only we

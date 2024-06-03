@@ -29,7 +29,8 @@ def render(texture_image_path: str,
            debug: bool = False,
            dataset: str = 'skeletex',
            cam_pos: Sequence = torch.tensor([2,0.35,0]),
-           image_size: int = 1024) -> None:
+           image_size: int = 1024,
+           cam_dist: float = 2) -> None:
     
     """
     Render the texture image on the mesh
@@ -75,7 +76,7 @@ def render(texture_image_path: str,
     } # TODO : fix rotation dict
 
     for m in mode:
-        if m not in ['frontal','side','back']:
+        if m.lower() not in ['frontal','side','back']:
             logger.error(f"Invalid mode {m}")
             continue
         
@@ -101,10 +102,9 @@ def render(texture_image_path: str,
             mesh_rot=0,  # mesh rotation in Y axis in degrees
             output_path=output_path,
             output_filename=file_name,
-            orientation=m,
-            mean_position = obj_verts.mean(dim=0),
             azimut=rotation_dict[m],
             at = obj_verts.mean(dim=0),
+            cam_dist = cam_dist,
         )
 
 
