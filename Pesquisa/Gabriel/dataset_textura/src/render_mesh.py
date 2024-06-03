@@ -21,7 +21,6 @@ from pytorch3d.renderer import (
 
 
 def render_mesh_textured(
-    device: str,
     verts: np.ndarray | torch.Tensor,
     textures : np.ndarray | torch.Tensor,
     verts_uvs : np.ndarray | torch.Tensor,
@@ -31,7 +30,7 @@ def render_mesh_textured(
     cam_pos : np.ndarray | torch.Tensor = None,
     azimut : int = 0,
     mesh_rot: int = None,
-    background_color : np.ndarray | torch.Tensor = None,
+    background : np.ndarray | torch.Tensor = None,
     output_path: str = None,
     output_filename: str = None,
     up = None,
@@ -44,6 +43,7 @@ def render_mesh_textured(
 ):
     batch_size = 1
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # default image size
     at_position = at.tolist()
     #mean_position = mean_position.tolist()
@@ -52,6 +52,10 @@ def render_mesh_textured(
         at_position[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(azimut))),
         at_position[2],
     ]
+
+
+    if background_image is not None:
+        background_image = cv.imread(background_image)
 
     if up is None:
         up = ((0, 0, 1),)
@@ -68,8 +72,7 @@ def render_mesh_textured(
         mesh_rot = 0
 
     # default background color
-    if background_color is None:
-        background_color = (1.0, 1.0, 1.0)
+
     
     up = ((0, 0, 1),)
 
@@ -126,7 +129,12 @@ def render_mesh_textured(
         faces_per_pixel=1,
     )
 
-    blend_params = BlendParams(background_color=background_color)
+    if background is None:
+        background_color = (1.0, 1.0, 1.0)
+        blend_params = BlendParams(background_color=background_color)
+    else:
+        background_color = background
+        blend_params = BlendParams(background_color=background_color/255.0)
 
     # Create a Phong renderer by composing a rasterizer and a shader. The textured Phong shader will
     # interpolate the texture uv coordinates for each vertex, sample from a texture image and

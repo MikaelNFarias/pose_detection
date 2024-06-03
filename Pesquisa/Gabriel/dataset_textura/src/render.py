@@ -11,6 +11,7 @@ import smplx as SMPL
 from pytorch3d.io import load_obj
 import logging
 # Load the OBJ file
+import cv2 as cv
 import re
 from utils import *
 from typing import List,Any,Optional,Sequence, Union, Dict
@@ -30,7 +31,8 @@ def render(texture_image_path: str,
            dataset: str = 'skeletex',
            cam_pos: Sequence = torch.tensor([2,0.35,0]),
            image_size: int = 1024,
-           cam_dist: float = 2) -> None:
+           cam_dist: float = 1.0,
+           background_image_path: str | None = None) -> None:
     
     """
     Render the texture image on the mesh
@@ -51,6 +53,10 @@ def render(texture_image_path: str,
 
     logger: logging.Logger = setup_logger(debug)
     texture_image = load_texture_image(texture_image_path)
+
+    if background_image_path is not None:
+        background_image = cv.imread(background_image_path)
+        background_image = cv.resize(background_image,dsize=(image_size,image_size),interpolation=cv.INTER_CUBIC)
 
     ##get the numeration on texture image file
     file_numeration: str | None  = extract_numeration(texture_image_path)
@@ -82,7 +88,7 @@ def render(texture_image_path: str,
         
         file_name: str = f"{dataset}_{file_numeration}_{m}_render.png"
 
-        logger.debug(f"""Rendering {file_name} image
+        logger.debug(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}
                     and smpl model {smpl_model_path}
                     and smpl uv map {smpl_uv_map_path}
@@ -91,7 +97,6 @@ def render(texture_image_path: str,
                     and orientation {m}""")
         
         render_mesh_textured(
-            device="cpu",
             verts=obj_verts,
             textures=texture_image,
             verts_uvs=smpl_verts_uvs,
@@ -105,6 +110,7 @@ def render(texture_image_path: str,
             azimut=rotation_dict[m],
             at = obj_verts.mean(dim=0),
             cam_dist = cam_dist,
+            background = background_image if background_image_path is not None else None,
         )
 
 
