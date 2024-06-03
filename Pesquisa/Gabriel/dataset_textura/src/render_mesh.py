@@ -89,6 +89,7 @@ def render_mesh_textured(
 
     lights = PointLights(
         device=device,
+        location = [at_position],
         ambient_color=[[1, 1, 1]],
         diffuse_color=[[0, 0, 0]],
         specular_color=[[0, 0, 0]],
@@ -123,11 +124,6 @@ def render_mesh_textured(
     # None which ensure that the faster coarse-to-fine rasterization method is used. Refer to
     # rasterize_meshes.py for explanations of these parameters. Refer to docs/notes/renderer.md for an
     # explanation of the difference between naive and coarse-to-fine rasterization.
-    raster_settings = RasterizationSettings(
-        image_size=image_size,
-        blur_radius=0.0,
-        faces_per_pixel=1,
-    )
 
     if background is None:
         background_color = (1.0, 1.0, 1.0)
@@ -135,6 +131,13 @@ def render_mesh_textured(
     else:
         background_color = background
         blend_params = BlendParams(background_color=background_color/255.0)
+
+    raster_settings = RasterizationSettings(
+        image_size=image_size,
+        blur_radius=0.0,
+        faces_per_pixel=1,
+    )
+
 
     # Create a Phong renderer by composing a rasterizer and a shader. The textured Phong shader will
     # interpolate the texture uv coordinates for each vertex, sample from a texture image and

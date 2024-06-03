@@ -59,7 +59,7 @@ def render(texture_image_path: str,
         background_image = cv.resize(background_image,dsize=(image_size,image_size),interpolation=cv.INTER_CUBIC)
 
     ##get the numeration on texture image file
-    file_numeration: str | None  = extract_numeration(texture_image_path)
+    file_numeration: str | None  = extract_numeration(obj_mesh_path)
     #smpl = initialize_smpl(smpl_model_path,gender)
 
     obj_verts,obj_facets,obj_aux = load_obj(obj_mesh_path)
