@@ -34,10 +34,28 @@ def render_mesh_textured(
     output_path=None,
     output_filename=None,
     orientation='frontal',
+    up = None,
+    at = None,
+    mean_position = None,
+    cam_dist = 1.0,
+    x_axis_weight = 1.0,
+    y_axis_weight = 1.0,
+    z_axis_weight = 1.0,
 ):
     batch_size = 1
 
     # default image size
+    at_position = at.tolist()
+    #mean_position = mean_position.tolist()
+    eye_position = [
+        at_position[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(azimut))),
+        at_position[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(azimut))),
+        at_position[2],
+    ]
+
+    if up is None:
+        up = ((0, 0, 1),)
+
     if image_size is None:
         image_size = 512
 
@@ -52,6 +70,8 @@ def render_mesh_textured(
     # default background color
     if background_color is None:
         background_color = (1.0, 1.0, 1.0)
+    
+    up = ((0, 0, 1),)
 
     tex = torch.from_numpy(textures / 255.0)[None].to(device)
     textures_rgb = TexturesUV(
@@ -81,16 +101,17 @@ def render_mesh_textured(
     # With world coordinates +Y up, +X left and +Z in, the front of the mesh is facing the +Z direction.
     # So we move the camera by mesh_rotation in the azimuth direction.
 
+    #R,T = look_at_view_transform(at,
     if frontal:
-        R, T = look_at_view_transform(eye = ((0.5,2,1.0),),
-                                      at = ((0.5,0.8,1.2),),
-                                      up = ((0, 0, 1),))
+        R, T = look_at_view_transform(eye = [eye_position],
+                                      at = [at_position],
+                                      up = [[0, 0, 1]])
     if side:
         R, T = look_at_view_transform(eye = ((2.5,0.8,1.0),),
                                       at = ((0.5,0.8,1.2),),
                                       up = ((0, 0, 1),))
-    ##T[0, 1] += cam_pos[1]
-    # cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
+    #T[0, 1] += cam_pos[1]
+    ##cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
     cameras = OrthographicCameras(device=device, T=T, R=R)
 
     # Define the settings for rasterization and shading. Here we set the output image to be of size
