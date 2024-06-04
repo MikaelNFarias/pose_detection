@@ -29,10 +29,10 @@ def render(texture_image_path: str,
            mode: List[str] = ['frontal','side'],
            debug: bool = False,
            dataset: str = 'skeletex',
-           cam_pos: Sequence = torch.tensor([2,0.35,0]),
            image_size: int = 1024,
            cam_dist: float = 1.0,
-           background_image_path: str | None = None) -> None:
+           background_image_path: str | None = None,
+           anti_aliasing = False) -> None:
     
     """
     Render the texture image on the mesh
@@ -88,7 +88,7 @@ def render(texture_image_path: str,
         
         file_name: str = f"{dataset}_{file_numeration}_{m}_render.png"
 
-        logger.debug(f"""Rendering {file_name} image ({image_size},{image_size})
+        logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}
                     and smpl model {smpl_model_path}
                     and smpl uv map {smpl_uv_map_path}
@@ -102,8 +102,7 @@ def render(texture_image_path: str,
             verts_uvs=smpl_verts_uvs,
             faces_uvs=smpl_faces_uvs,
             faces_vertices=obj_facets.verts_idx,
-            image_size=image_size,  # image resolution
-            cam_pos=cam_pos,  # camera position
+            image_size=image_size,  # image resolution  # camera position
             mesh_rot=0,  # mesh rotation in Y axis in degrees
             output_path=output_path,
             output_filename=file_name,
@@ -111,6 +110,7 @@ def render(texture_image_path: str,
             at = obj_verts.mean(dim=0),
             cam_dist = cam_dist,
             background = background_image if background_image_path is not None else None,
+            anti_aliasing = anti_aliasing
         )
 
 
