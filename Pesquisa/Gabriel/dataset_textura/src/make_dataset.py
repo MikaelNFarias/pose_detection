@@ -46,12 +46,14 @@ def make_dataset(meshes_path: str,
     meshes_path: str = os.path.join(meshes_path, dataset)
     textures : List[str] = glob(os.path.join(textures_path, '*.png'))
     meshes: List[str] = sorted(glob(os.path.join(meshes_path, '*.obj')))
+    backgrounds = sorted(glob(background_folder))
 
     for idx,mesh in enumerate(meshes):
 
         if idx >= stop_after:
             break
         texture =  random.choice(textures)
+        background_image = random.choice(backgrounds)
         obj_verts, file_numeration = rd.render(texture_image_path=texture,
                   smpl_model_path=smpl_model_path,
                   smpl_model_type='smpl',
@@ -60,7 +62,8 @@ def make_dataset(meshes_path: str,
                   output_path=output_folder,
                   gender='female',
                   cam_dist=2.0,
-                  )
+
+        )
         logger.info(f"""Finalizado a renderização do {mesh}""")
 
         measurer = ms.MeasureBody('smpl')
@@ -77,7 +80,7 @@ def make_dataset(meshes_path: str,
             json_file_path=os.path.join(output_folder, f'{dataset}_{file_numeration}.json'),
             file_numeration=file_numeration,
             texture = texture,
-            background= None # TODO precisa implementar funcao de adicionar background
+            background= background_image # TODO precisa implementar funcao de adicionar background
         )
         print("finalizado")
 

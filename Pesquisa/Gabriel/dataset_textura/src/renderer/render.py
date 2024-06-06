@@ -14,7 +14,8 @@ import logging
 # Load the OBJ file
 import cv2 as cv
 import re
-from typing import List, Any, Optional, Sequence, Union, Dict
+from typing import List, Any, Optional, Sequence, Union, Dict,Tuple
+
 
 sys.path.append('../')
 
@@ -34,13 +35,8 @@ def render(texture_image_path: str,
            image_size: int = 1024,
            cam_dist: float = 1.0,
            background_image_path: str | None = None,
-<<<<<<< HEAD:Pesquisa/Gabriel/dataset_textura/src/renderer/render.py
-           anti_aliasing=False) -> torch.Tensor:
+           anti_aliasing=False) -> Tuple[torch.Tensor, int]:
 
-=======
-           anti_aliasing = False) -> None:
-    
->>>>>>> refs/remotes/origin/main:Pesquisa/Gabriel/dataset_textura/src/render.py
     """
 
     :param texture_image_path:
@@ -115,17 +111,10 @@ def render(texture_image_path: str,
             output_path=os.path.join(output_path,m),
             output_filename=file_name,
             azimut=rotation_dict[m],
-<<<<<<< HEAD:Pesquisa/Gabriel/dataset_textura/src/renderer/render.py
             at=obj_verts.mean(dim=0),
             cam_dist=cam_dist,
             background=background_image,
-            anti_aliasing=anti_aliasing
-=======
-            at = obj_verts.mean(dim=0),
-            cam_dist = cam_dist,
-            background = background_image if background_image_path is not None else None,
-            anti_aliasing = anti_aliasing
->>>>>>> refs/remotes/origin/main:Pesquisa/Gabriel/dataset_textura/src/render.py
+            anti_aliasing=anti_aliasing,
         )
 
     return obj_verts, file_numeration
