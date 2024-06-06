@@ -18,7 +18,7 @@ def main() -> None:
            output_path,
            debug=True,
            cam_dist=2,
-           background_image_path="../../Untitled.jpeg",
+           background_image_path="../../data/background/Untitled.jpeg",
            image_size=1024,
            mode=['frontal', 'side'],
            anti_aliasing=False, )

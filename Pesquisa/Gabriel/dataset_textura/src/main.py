@@ -10,17 +10,17 @@ def main() -> None:
     output_path = "../sample_data/"
 
     rd.render(texture_image_path,
-           smpl_model_path,
-           model_type,
-           smpl_uv_map_path,
-           obj_mesh_path,
-           output_path,
-           debug=True,
-           cam_dist=2,
-           background_image_path= "../Untitled.jpeg",
-           image_size=1024,
-           mode=['frontal','side'],
-           anti_aliasing=True,)
+              smpl_model_path,
+              model_type,
+              smpl_uv_map_path,
+              obj_mesh_path,
+              output_path,
+              debug=True,
+              cam_dist=2,
+              background_image_path="../data/background/Untitled.jpeg",
+              image_size=1024,
+              mode=['frontal','side'],
+              anti_aliasing=True, )
 
 if __name__ == "__main__":
     main()
