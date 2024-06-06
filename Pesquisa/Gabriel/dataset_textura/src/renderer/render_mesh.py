@@ -5,6 +5,8 @@ import sys
 import cv2 as cv
 from PIL import Image
 import os
+
+from typing import Sequence, List, Any
 from pytorch3d.structures import Meshes
 from pytorch3d.renderer import (
     look_at_view_transform,
@@ -33,14 +35,16 @@ def render_mesh_textured(
     background : np.ndarray | torch.Tensor = None,
     output_path: str = None,
     output_filename: str = None,
-    up = None,
-    at = None,
+    up : Sequence = None,
+    at : Sequence = None,
     cam_dist: float = 1.0,
     x_axis_weight: float = 1.0,
     y_axis_weight: float = 1.0,
     z_axis_weight: float = 1.0,
-    background_image = None,
-):
+    background_image: np.ndarray | torch.Tensor = None,
+    anti_aliasing: bool = False,
+    aa_factor : int = 2,
+) -> None:
     batch_size = 1
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -58,7 +62,7 @@ def render_mesh_textured(
         background_image = cv.imread(background_image)
 
     if up is None:
-        up = ((0, 0, 1),)
+        up = [0,0,1]
 
     if image_size is None:
         image_size = 512
@@ -74,7 +78,6 @@ def render_mesh_textured(
     # default background color
 
     
-    up = ((0, 0, 1),)
 
     tex = torch.from_numpy(textures / 255.0)[None].to(device)
     textures_rgb = TexturesUV(
@@ -89,11 +92,13 @@ def render_mesh_textured(
 
     lights = PointLights(
         device=device,
-        location = [at_position],
-        ambient_color=[[1, 1, 1]],
-        diffuse_color=[[0, 0, 0]],
-        specular_color=[[0, 0, 0]],
+        location=[eye_position], # [at_position],
+        ambient_color=  [[1.,1.,1.]],
+        diffuse_color=  [[0.02,0.02,0.02]],
+        specular_color= [[0.,0.,0.]],
     )
+    #TODO definir propriedades luminosas no objeto e na fonte de luz
+    # Analisar normais do vertices 
     # if orientation == 'frontal':
         # frontal = True
         # side = False
@@ -108,8 +113,8 @@ def render_mesh_textured(
     #R,T = look_at_view_transform(at,
     if True:
         R, T = look_at_view_transform(eye = [eye_position],
-                                      at = [at_position],
-                                      up = [[0, 0, 1]])
+                                      at =  [at_position],
+                                      up =  [up])
     ##if side:
     ##    R, T = look_at_view_transform(eye = ((2.5,0.8,1.0),),
     ##                                  at = ((0.5,0.8,1.2),),
@@ -130,7 +135,7 @@ def render_mesh_textured(
         blend_params = BlendParams(background_color=background_color)
     else:
         background_color = background
-        blend_params = BlendParams(background_color=background_color/255.0)
+        blend_params = BlendParams(background_color = background_color/255.0)
 
     raster_settings = RasterizationSettings(
         image_size=image_size,

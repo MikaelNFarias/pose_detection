@@ -3,4 +3,9 @@ src/teste.py
 venv/
 env/
 src/__pycache__/
+sample_data/*
+sample_data/SMPL/
+data/meshes/skeletex/*.obj
+data/output/frontal/*
+data/output/side/*
 __pycache__/
