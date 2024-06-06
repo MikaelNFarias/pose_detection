@@ -1,0 +1,46 @@
+{
+    "textura": "../data/textures/TEXTURE.png",
+    "background": "../data/background/Untitled.jpeg",
+    "medidas_antropometricas": {
+        "height": 162.91029453277588,
+        "head_circumference": 51.7177140237823,
+        "neck_circumference": 29.059623043504878,
+        "shoulder_to_crotch_height": 59.35458540916443,
+        "chest_circumference": 90.80759120406653,
+        "waist_circumference": 76.47490971050462,
+        "hip_circumference": 104.40748460180866,
+        "wrist_right_circumference": 14.538549365304487,
+        "bicep_right_circumference": 21.687099712039746,
+        "forearm_right_circumference": 20.265713985842666,
+        "arm_right_length": 49.911776185035706,
+        "inside_leg_height": 71.06872200965881,
+        "thigh_left_circumference": 47.589633511963235,
+        "calf_left_circumference": 34.45458833459646,
+        "ankle_left_circumference": 21.76722017751233,
+        "shoulder_breadth": 29.641446471214294
+    },
+    "unidade": "cm",
+    "file_numeration": "000005",
+    "dataset": "skeletex",
+    "eye_position_frontal": [
+        0.5000000596046449,
+        2.800000011920929,
+        1.2000000476837158
+    ],
+    "eye_position_side": [
+        2.5000000596046448,
+        0.800000011920929,
+        1.2000000476837158
+    ],
+    "at": [
+        0.5000000596046448,
+        0.800000011920929,
+        1.2000000476837158
+    ],
+    "cam_dist": 2.0,
+    "up": [
+        0,
+        0,
+        1
+    ]
+}

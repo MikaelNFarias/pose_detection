@@ -167,6 +167,7 @@ def render_mesh_textured(
     if output_filename is not None:
         print("Saving ", os.path.join(output_path, output_filename), "\n")
         img.save(os.path.join(output_path, output_filename))
+        return eye_position, at
     else:
         return img
     # plt.figure(figsize=(10, 10))

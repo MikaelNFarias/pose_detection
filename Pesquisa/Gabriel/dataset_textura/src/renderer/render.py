@@ -28,14 +28,16 @@ def render(texture_image_path: str,
            smpl_uv_map_path: str,
            obj_mesh_path: str,
            output_path: str,
-           gender: str = 'male',
+           gender: str = 'female',
            mode: List[str] = ('frontal', 'side'),
            debug: bool = False,
            dataset: str = 'skeletex',
            image_size: int = 1024,
            cam_dist: float = 1.0,
            background_image_path: str | None = None,
-           anti_aliasing=False) -> Tuple[torch.Tensor, int]:
+           anti_aliasing=False,
+           x_axis_weight = 1.0,
+           y_axis_weight = 1.0) -> Dict[str,Any]:
 
     """
 
@@ -69,6 +71,10 @@ def render(texture_image_path: str,
     #smpl = initialize_smpl(smpl_model_path,gender)
 
     obj_verts, obj_facets, obj_aux = load_obj(obj_mesh_path)
+    at = obj_verts.mean(dim=0)
+    at_aux = at.tolist()
+
+
     #obj_faces_verts  = obj_facets.textures_idx[None, ...]
     # (1, F, 3)
 
@@ -84,6 +90,12 @@ def render(texture_image_path: str,
         'side': 0,
         'back': 180
     }  # TODO : fix rotation dict
+
+    RETURN_DATA = {
+        "verts": obj_verts,
+        "file_numeration": file_numeration,
+        "dataset": dataset,
+    }
 
     for m in mode:
         if m.lower() not in ['frontal', 'side', 'back']:
@@ -115,6 +127,20 @@ def render(texture_image_path: str,
             cam_dist=cam_dist,
             background=background_image,
             anti_aliasing=anti_aliasing,
+            x_axis_weight=1.0,
+            y_axis_weight=1.0,
         )
+        eye_position = [
+            at_aux[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
+            at_aux[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
+            at_aux[2],
+        ]
+        RETURN_DATA[f"eye_position_{m}"] = eye_position
 
-    return obj_verts, file_numeration
+    RETURN_DATA["at"] = at_aux
+    RETURN_DATA["cam_dist"] = cam_dist
+    RETURN_DATA['up'] = (0,0,1)
+
+
+
+    return RETURN_DATA

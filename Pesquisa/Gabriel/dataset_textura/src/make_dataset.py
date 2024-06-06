@@ -17,20 +17,32 @@ from glob import glob
 
 def save_measurements_to_json(measurements: Dict[Any,Any],
                               json_file_path: str,
-                              file_numeration: int,
                               texture: str,
-                              background: str) -> None:
-    json_file_path = os.path.join(json_file_path,'annotations')
+                              background: str,
+                              unit='cm',
+                              render_data= None,
+                              **kwargs) -> None:
+
+    file_numeration = render_data['file_numeration']
+    print(file_numeration)
+    json_file_path = os.path.join(json_file_path,f"{render_data['dataset']}_{file_numeration}_annotation.json")
     data_json = {
-        "numero_malha": file_numeration,
-        "texture": texture,
+        "textura": texture,
         "background": background,
         "medidas_antropometricas": measurements,
+        'unidade':unit,
+
     }
+    if render_data is not None:
+        ##del render_data['file_numeration']
+        data_json.update(render_data)
+
 
 
     with open(json_file_path,'w+') as f:
-        json.dump(data_json,f)
+        json.dump(data_json,f, indent=4)
+
+    print(f"Arquivo JSON {json_file_path} salvo com sucesso")
 
 
 logger = setup_logger(debug=False)
@@ -41,12 +53,14 @@ def make_dataset(meshes_path: str,
                  background_folder: str = None,
                  stop_after: int = 10) -> None:
 
-
     smpl_model_path = "../sample_data/SMPL/models"
     meshes_path: str = os.path.join(meshes_path, dataset)
     textures : List[str] = glob(os.path.join(textures_path, '*.png'))
     meshes: List[str] = sorted(glob(os.path.join(meshes_path, '*.obj')))
-    backgrounds = sorted(glob(background_folder))
+    backgrounds : List[str] = glob(os.path.join(background_folder,'*.jpeg')) + \
+        glob(os.path.join(background_folder,'*.jpg')) + \
+        glob(os.path.join(background_folder,'*.png'))
+
 
     for idx,mesh in enumerate(meshes):
 
@@ -54,18 +68,21 @@ def make_dataset(meshes_path: str,
             break
         texture =  random.choice(textures)
         background_image = random.choice(backgrounds)
-        obj_verts, file_numeration = rd.render(texture_image_path=texture,
-                  smpl_model_path=smpl_model_path,
-                  smpl_model_type='smpl',
-                  smpl_uv_map_path='../sample_data/smpl_uv.obj',
-                  obj_mesh_path=mesh,
-                  output_path=output_folder,
-                  gender='female',
-                  cam_dist=2.0,
 
+        render_data = rd.render(texture_image_path=texture,
+                smpl_model_path=smpl_model_path,
+                smpl_model_type='smpl',
+                smpl_uv_map_path='../sample_data/smpl_uv.obj',
+                obj_mesh_path=mesh,
+                output_path=output_folder,
+                gender='female',
+                cam_dist=2.0,
+                background_image_path=background_image,
         )
+
         logger.info(f"""Finalizado a renderização do {mesh}""")
 
+        obj_verts = render_data['verts']
         measurer = ms.MeasureBody('smpl')
         measurer.from_verts(verts = obj_verts)
 
@@ -75,12 +92,19 @@ def make_dataset(meshes_path: str,
 
         measurements = measurer.measurements
 
+        file_numeration = render_data['file_numeration']
+        print(file_numeration,"fora")
+        dataset = render_data['dataset']
+
+        del render_data['verts']
+        #render_data['verts'] = render_data['verts'].tolist()
         save_measurements_to_json(
             measurements=measurements,
-            json_file_path=os.path.join(output_folder, f'{dataset}_{file_numeration}.json'),
-            file_numeration=file_numeration,
+            json_file_path=os.path.join(output_folder,'annotations'),
             texture = texture,
-            background= background_image # TODO precisa implementar funcao de adicionar background
+            background= background_image,
+            render_data = render_data
+            # TODO precisa implementar funcao de adicionar background [X]
         )
         print("finalizado")
 
@@ -91,4 +115,5 @@ def make_dataset(meshes_path: str,
 if __name__ == "__main__":
     make_dataset(meshes_path='../data/meshes',
                  textures_path='../data/textures',
+                 background_folder='../data/background',
                  stop_after=1)
