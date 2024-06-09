@@ -45,7 +45,7 @@ def save_measurements_to_json(measurements: Dict[Any,Any],
     print(f"Arquivo JSON {json_file_path} salvo com sucesso")
 
 
-logger = setup_logger(debug=False)
+logger = setup_logger(__name__)
 def make_dataset(meshes_path: str,
                  textures_path: str,
                  dataset: str = 'skeletex',

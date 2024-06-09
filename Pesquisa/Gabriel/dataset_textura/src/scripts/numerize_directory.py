@@ -1,25 +1,11 @@
-import glob
 import os
-import sys
 
+def numerize_directory(directory):
+    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory,f))]
+    files.sort()
 
-def numerize_directory(directory: str):
+    for idx, file in enumerate(files):
 
-    directory_list = glob.glob(directory)
-    directory_list.sort()
+        file_extension = os.path.splitext(file)[1]
+        new_file_name = f"{idx}"
 
-    num_files = len(directory_list)
-    num_digits = len(str(num_files))
-
-    for idx, filename in enumerate(directory_list):
-        new_name = f"{str(idx + 1).zfill(num_digits)}{os.path.splitext(filename)[1]}"
-        old_file = os.path.join(directory, filename)
-        new_file = os.path.join(directory, new_name)
-
-        os.rename(old_file, new_file)
-
-        print(f"Renomeado com sucesso: {old_file} -> {new_file}")
-
-
-if __name__ == "__main__":
-    numerize_directory('../../data/textures')

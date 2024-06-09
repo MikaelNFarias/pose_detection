@@ -5,6 +5,14 @@ import logging
 import re
 from typing import List,Any,Optional
 
+import json
+import sys
+import numpy as np
+from scipy.spatial import ConvexHull
+import os
+import argparse
+
+
 
 def load_texture_image(texture_image_path):
     with Image.open(texture_image_path) as texture_image:
@@ -25,16 +33,16 @@ def extract_numeration(texture_image_path: str) -> Optional[str]:
         return number_part
     return None
 
-def setup_logger(debug):
+def setup_logger(context):
     # Create a logger
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(context)
     # Set the level based on the debug parameter
-    logger.setLevel(logging.DEBUG if debug else logging.INFO)
+    logger.setLevel(logging.INFO)
     
     # Create a console handler
     ch = logging.StreamHandler()
     # Set the level for the handler
-    ch.setLevel(logging.DEBUG if debug else logging.INFO)
+    ch.setLevel(logging.INFO)
     
     # Create a formatter and set it for the handler
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -46,13 +54,6 @@ def setup_logger(debug):
     
     return logger
 
-
-import json
-import sys
-import numpy as np
-from scipy.spatial import ConvexHull
-import os
-import argparse
 
 
 def load_face_segmentation(path: str):

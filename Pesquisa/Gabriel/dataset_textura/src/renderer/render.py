@@ -29,7 +29,7 @@ def render(texture_image_path: str,
            obj_mesh_path: str,
            output_path: str,
            gender: str = 'female',
-           mode: List[str] = ('frontal', 'side'),
+           views: List[str] = ('frontal', 'side'),
            debug: bool = False,
            dataset: str = 'skeletex',
            image_size: int = 1024,
@@ -48,7 +48,7 @@ def render(texture_image_path: str,
     :param obj_mesh_path:
     :param output_path:
     :param gender:
-    :param mode:
+    :param views:
     :param debug:
     :param dataset:
     :param image_size:
@@ -97,9 +97,9 @@ def render(texture_image_path: str,
         "dataset": dataset,
     }
 
-    for m in mode:
+    for m in views:
         if m.lower() not in ['frontal', 'side', 'back']:
-            logger.error(f"Invalid mode {m}")
+            logger.error(f"Invalid view {m}")
             continue
 
         file_name: str = f"{dataset}_{file_numeration}_{m}_render.png"
