@@ -14,7 +14,7 @@ from landmark_definitions import *
 from joint_definitions import *
 
 sys.path.append('../')
-from utils import *
+from src.utils import *
 # import pytorch3d  load obj
 
 from pytorch3d.io import load_obj
@@ -78,6 +78,9 @@ class Measurer():
         self.labeled_measurements = {}
         self.height_normalized_labeled_measurements = {}
         self.labels2names = {}
+        self.planes = {}
+        self.hulls  = {}
+        self.planes_info  = {}
 
     def from_verts(self):
         pass
@@ -109,8 +112,15 @@ class Measurer():
 
             elif self.measurement_types[m_name] == MeasurementType().CIRCUMFERENCE:
 
-                value = self.measure_circumference(m_name)
+                value,hull,plane_origin,plane_normal = self.measure_circumference(m_name)
                 self.measurements[m_name] = value
+                measure_name_slice = m_name.split('_')[0]
+                self.planes_info[measure_name_slice] = {
+                    "convex_hull": hull,
+                    "plane_origin":plane_origin,
+                    "plane_normal": plane_normal
+
+                }
 
             else:
                 print(f"Measurement {m_name} not defined")
@@ -198,7 +208,7 @@ class Measurer():
 
         slice_segments_hull = convex_hull_from_3D_points(slice_segments)
 
-        return self._get_dist(slice_segments_hull)
+        return self._get_dist(slice_segments_hull), slice_segments_hull, plane_origin, plane_normal # perimetro do fecho convexo,
 
     def height_normalize_measurements(self, new_height: float):
         '''
@@ -255,6 +265,10 @@ class Measurer():
 
             self.labeled_measurements[set_label] = self.measurements[set_name]
             self.labels2names[set_label] = set_name
+
+    def get_other_measurements(self):
+
+        ...
 
     def visualize(self,
                   measurement_names: List[str] = [],

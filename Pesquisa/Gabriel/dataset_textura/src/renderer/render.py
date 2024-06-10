@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import vedo
 import os
+from tqdm import tqdm
 import sys
 import torch
 from render_mesh import render_mesh_textured
@@ -32,7 +33,7 @@ def render(texture_image_path: str,
            views: List[str] = ('frontal', 'side'),
            debug: bool = False,
            dataset: str = 'skeletex',
-           image_size: int = 1024,
+           image_size: int = 128,
            cam_dist: float = 1.0,
            background_image_path: str | None = None,
            anti_aliasing=False,
@@ -97,7 +98,7 @@ def render(texture_image_path: str,
         "dataset": dataset,
     }
 
-    for m in views:
+    for m in tqdm(views):
         if m.lower() not in ['frontal', 'side', 'back']:
             logger.error(f"Invalid view {m}")
             continue

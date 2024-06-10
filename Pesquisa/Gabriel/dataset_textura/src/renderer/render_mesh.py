@@ -93,18 +93,12 @@ def render_mesh_textured(
     lights = PointLights(
         device=device,
         location=[eye_position], # [at_position],
-        ambient_color=  [[1.,1.,1.]],
-        diffuse_color=  [[0.02,0.02,0.02]],
-        specular_color= [[0.,0.,0.]],
+        ambient_color =  [[1.,1.,1.]],
+        diffuse_color =  [[0.002,0.002,0.002]],
+        specular_color = [[0.,0.,0.]],
     )
-    #TODO definir propriedades luminosas no objeto e na fonte de luz
-    # Analisar normais do vertices 
-    # if orientation == 'frontal':
-        # frontal = True
-        # side = False
-    # else:
-        # side = True
-        # frontal = False
+    # TODO definir propriedades luminosas no objeto e na fonte de luz
+    # Analisar normais do vertices [ não tem normais]
 
     # Initialize a camera.
     # With world coordinates +Y up, +X left and +Z in, the front of the mesh is facing the +Z direction.

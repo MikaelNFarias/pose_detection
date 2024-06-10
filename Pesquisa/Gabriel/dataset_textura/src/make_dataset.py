@@ -6,7 +6,7 @@ import numpy as np
 import random
 sys.path.append('renderer')
 sys.path.append('measurer')
-
+from time import time
 import measurer.measure as ms
 from measurer.measurement_definitions import STANDARD_LABELS
 import renderer.render as rd
@@ -15,16 +15,30 @@ from utils import *
 from typing import List,Any,Tuple,Dict
 from glob import glob
 
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+def timer_function(func):
+    def wrapper(*args, **kwargs):
+        t1 = time()
+        result = func(*args, **kwargs)
+        t2 = time()
+        print(f"Function {func.__name__!r} executed in {(t2-t1):.4f}s")
+        return  result
+    return wrapper
 def save_measurements_to_json(measurements: Dict[Any,Any],
                               json_file_path: str,
                               texture: str,
                               background: str,
                               unit='cm',
                               render_data= None,
+                              plane_data = None,
                               **kwargs) -> None:
 
     file_numeration = render_data['file_numeration']
-    print(file_numeration)
     json_file_path = os.path.join(json_file_path,f"{render_data['dataset']}_{file_numeration}_annotation.json")
     data_json = {
         "textura": texture,
@@ -35,17 +49,22 @@ def save_measurements_to_json(measurements: Dict[Any,Any],
     }
     if render_data is not None:
         ##del render_data['file_numeration']
+        render_data = convert_numpy_to_list(render_data)
         data_json.update(render_data)
+    if plane_data is not None:
+        plane_data = convert_numpy_to_list(plane_data)
+        data_json.update(plane_data)
 
 
 
     with open(json_file_path,'w+') as f:
-        json.dump(data_json,f, indent=4)
+        json.dump(data_json,f, indent=4,cls=NumpyEncoder)
 
     print(f"Arquivo JSON {json_file_path} salvo com sucesso")
 
 
 logger = setup_logger(__name__)
+@timer_function
 def make_dataset(meshes_path: str,
                  textures_path: str,
                  dataset: str = 'skeletex',
@@ -91,10 +110,10 @@ def make_dataset(meshes_path: str,
         measurer.label_measurements(STANDARD_LABELS)
 
         measurements = measurer.measurements
+        plane_data = measurer.planes_info
 
         file_numeration = render_data['file_numeration']
         print(file_numeration,"fora")
-        dataset = render_data['dataset']
 
         del render_data['verts']
         #render_data['verts'] = render_data['verts'].tolist()
@@ -103,10 +122,13 @@ def make_dataset(meshes_path: str,
             json_file_path=os.path.join(output_folder,'annotations'),
             texture = texture,
             background= background_image,
-            render_data = render_data
+            render_data = render_data,
+            plane_data = plane_data
             # TODO precisa implementar funcao de adicionar background [X]
         )
-        print("finalizado")
+
+
+
 
 
 

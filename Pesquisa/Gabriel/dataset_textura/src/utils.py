@@ -220,3 +220,11 @@ if __name__ == "__main__":
         _ = point_segmentation_to_face_segmentation(point_segmentation,
                                                     smplx_faces,
                                                     save_as)
+
+def convert_numpy_to_list(dictionary: dict):
+
+    for key, value in dictionary.items():
+        if isinstance(value,np.ndarray):
+            dictionary[key] = value.tolist()
+
+    return dictionary
