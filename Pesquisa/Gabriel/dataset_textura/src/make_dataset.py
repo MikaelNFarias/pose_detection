@@ -68,9 +68,10 @@ logger = setup_logger(__name__)
 def make_dataset(meshes_path: str,
                  textures_path: str,
                  dataset: str = 'skeletex',
-                 output_folder = '../data/output',
+                 output_folder: str = '../data/output',
                  background_folder: str = None,
-                 stop_after: int = 10) -> None:
+                 stop_after: int = 10,
+                ) -> None:
 
     smpl_model_path = "../sample_data/SMPL/models"
     meshes_path: str = os.path.join(meshes_path, dataset)
@@ -82,50 +83,52 @@ def make_dataset(meshes_path: str,
 
 
     for idx,mesh in enumerate(meshes):
-
         if idx >= stop_after:
             break
         texture =  random.choice(textures)
         background_image = random.choice(backgrounds)
 
-        render_data = rd.render(texture_image_path=texture,
-                smpl_model_path=smpl_model_path,
-                smpl_model_type='smpl',
-                smpl_uv_map_path='../sample_data/smpl_uv.obj',
-                obj_mesh_path=mesh,
-                output_path=output_folder,
-                gender='female',
-                cam_dist=2.0,
-                background_image_path=background_image,
-        )
+        CAMERA_DISTANCES = np.linspace(2,5,15)
+        try:
+            for i in range(0,len(CAMERA_DISTANCES),5):
+                cam_dist = CAMERA_DISTANCES[i]
+                render_data = rd.render(texture_image_path=texture,
+                    smpl_model_path=smpl_model_path,
+                    smpl_model_type='smpl',
+                    smpl_uv_map_path='../sample_data/smpl_uv.obj',
+                    obj_mesh_path=mesh,
+                    output_path=output_folder,
+                    gender='female',
+                    cam_dist=cam_dist,
+                    background_image_path=background_image,
+                )
+        except Exception as e:
+            logger.error(f"Erro ao renderizar {mesh}")
+            logger.error(e)
+            continue
 
-        logger.info(f"""Finalizado a renderização do {mesh}""")
 
-        obj_verts = render_data['verts']
-        measurer = ms.MeasureBody('smpl')
-        measurer.from_verts(verts = obj_verts)
+    logger.info(f"""Finalizado a renderização do {mesh}""")
 
-        measurement_names = measurer.all_possible_measurements
-        measurer.measure(measurement_names)
-        measurer.label_measurements(STANDARD_LABELS)
+    obj_verts = render_data['verts']
+    measurer = ms.MeasureBody('smpl')
+    measurer.from_verts(verts = obj_verts)
+    measurement_names = measurer.all_possible_measurements
+    measurer.measure(measurement_names)
+    measurer.label_measurements(STANDARD_LABELS)
+    measurements = measurer.measurements
+    plane_data = measurer.planes_info
 
-        measurements = measurer.measurements
-        plane_data = measurer.planes_info
-
-        file_numeration = render_data['file_numeration']
-        print(file_numeration,"fora")
-
-        del render_data['verts']
-        #render_data['verts'] = render_data['verts'].tolist()
-        save_measurements_to_json(
-            measurements=measurements,
-            json_file_path=os.path.join(output_folder,'annotations'),
-            texture = texture,
-            background= background_image,
-            render_data = render_data,
-            plane_data = plane_data
-            # TODO precisa implementar funcao de adicionar background [X]
-        )
+    del render_data['verts']
+    save_measurements_to_json(
+        measurements=measurements,
+        json_file_path=os.path.join(output_folder,'annotations'),
+        texture = texture,
+        background= background_image,
+        render_data = render_data,
+        plane_data = plane_data
+        # TODO precisa implementar funcao de adicionar background [X]
+    )
 
 
 
@@ -139,3 +142,10 @@ if __name__ == "__main__":
                  textures_path='../data/textures',
                  background_folder='../data/background',
                  stop_after=1)
+
+
+## cam_dist -> sai do nome da imagem
+## at -> sai da anotação (media dos vertices)
+## eye_position = [at[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
+##                at[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
+##                at[2]]

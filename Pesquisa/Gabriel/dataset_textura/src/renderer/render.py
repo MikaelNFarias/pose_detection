@@ -103,7 +103,7 @@ def render(texture_image_path: str,
             logger.error(f"Invalid view {m}")
             continue
 
-        file_name: str = f"{dataset}_{file_numeration}_{m}_render.png"
+        file_name: str = f"{dataset}_{file_numeration}_{m}_camdist_{cam_dist}_render.png"
 
         logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}
