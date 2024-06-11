@@ -1,6 +1,6 @@
 {
-    "textura": "../data/textures/TEXTURE.png",
-    "background": "../data/background/Untitled.jpeg",
+    "textura": "/home/gabriel/raquel-visao/Pesquisa/Gabriel/dataset_textura/data/textures/SMPLitex-texture-00253.png",
+    "background": "/home/gabriel/raquel-visao/Pesquisa/Gabriel/dataset_textura/data/background/Untitled.jpeg",
     "medidas_antropometricas": {
         "height": 165.3395652770996,
         "head_circumference": 52.47853501976859,
@@ -24,11 +24,11 @@
     "dataset": "skeletex",
     "eye_position_frontal": [
         0.5000000000000002,
-        4.942857154778071,
+        4.042857154778072,
         1.2000000476837158
     ],
     "eye_position_side": [
-        4.642857142857142,
+        3.742857142857143,
         0.800000011920929,
         1.2000000476837158
     ],
@@ -37,7 +37,7 @@
         0.800000011920929,
         1.2000000476837158
     ],
-    "cam_dist": 4.142857142857142,
+    "cam_dist": 3.242857142857143,
     "up": [
         0,
         0,

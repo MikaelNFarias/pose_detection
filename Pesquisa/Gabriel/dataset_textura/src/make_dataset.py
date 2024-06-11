@@ -15,7 +15,9 @@ from utils import *
 from typing import List,Any,Tuple,Dict
 from glob import glob
 
+from directiories import *
 
+print(DATA_DIR)
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
@@ -137,14 +139,15 @@ def make_dataset(meshes_path: str,
 
 
 if __name__ == "__main__":
-    make_dataset(meshes_path='../data/meshes',
-                 textures_path='../data/textures',
-                 background_folder='../data/background',
+
+    make_dataset(meshes_path=MESHES_DIR,
+                 textures_path=TEXTURES_DIR,
+                 background_folder=BACKGROUNDS_DIR,
                  stop_after=1)
 
 
-## cam_dist -> sai do nome da imagem
-## at -> sai da anotação (media dos vertices)
-## eye_position = [at[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
-##                at[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
-##                at[2]]
+    ## cam_dist -> sai do nome da imagem
+    ## at -> sai da anotação (media dos vertices)
+    ## eye_position = [at[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
+    ##                at[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
+    ##                at[2]]
