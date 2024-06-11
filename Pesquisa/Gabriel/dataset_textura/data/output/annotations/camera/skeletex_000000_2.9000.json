@@ -1,15 +1,15 @@
 {
-    "background": "/home/gabriel/raquel-visao/Pesquisa/Gabriel/dataset_textura/data/background/Untitled.jpeg",
-    "texture": "/home/gabriel/raquel-visao/Pesquisa/Gabriel/dataset_textura/data/textures/SMPLitex-texture-00229.png",
+    "background": "Untitled.jpeg",
+    "texture": "SMPLitex-texture-00253.png",
     "file_numeration": "000000",
     "dataset": "skeletex",
     "eye_position_frontal": [
         0.5,
-        2.8,
+        3.7,
         1.2
     ],
     "eye_position_side": [
-        2.5,
+        3.4,
         0.8,
         1.2
     ],
@@ -18,7 +18,7 @@
         0.8,
         1.2
     ],
-    "cam_dist": 2.0,
+    "cam_dist": 2.9,
     "up": [
         0,
         0,

@@ -1,6 +1,6 @@
 {
-    "background": "/home/gabriel/raquel-visao/Pesquisa/Gabriel/dataset_textura/data/background/Untitled.jpeg",
-    "texture": "/home/gabriel/raquel-visao/Pesquisa/Gabriel/dataset_textura/data/textures/SMPLitex-texture-00229.png",
+    "background": "Untitled.jpeg",
+    "texture": "SMPLitex-texture-00253.png",
     "file_numeration": "000000",
     "dataset": "skeletex",
     "eye_position_frontal": [
