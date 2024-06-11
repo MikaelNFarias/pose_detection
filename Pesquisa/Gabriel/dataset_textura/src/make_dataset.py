@@ -88,7 +88,7 @@ def make_dataset(meshes_path: str,
         texture =  random.choice(textures)
         background_image = random.choice(backgrounds)
 
-        CAMERA_DISTANCES = np.linspace(2,5,15)
+        CAMERA_DISTANCES = np.linspace(1.85,3.8,15)
         try:
             for i in range(0,len(CAMERA_DISTANCES),5):
                 cam_dist = CAMERA_DISTANCES[i]
@@ -127,7 +127,6 @@ def make_dataset(meshes_path: str,
         background= background_image,
         render_data = render_data,
         plane_data = plane_data
-        # TODO precisa implementar funcao de adicionar background [X]
     )
 
 
