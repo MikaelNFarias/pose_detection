@@ -86,11 +86,11 @@ def render(texture_image_path: str,
     smpl_faces_uvs = smpl_faces.textures_idx[None, ...]  # (1, F, 3)
 
     #rotation dict
-    rotation_dict: Dict[str, int] = {
-        'frontal': 90,
-        'side': 0,
-        'back': 180
-    }  # TODO : fix rotation dict
+    rotation_dict: Dict[str, float] = {
+        'frontal': 90.0,
+        'side': 0.0,
+        'back': 180.0,
+    }  
 
     RETURN_DATA = {
         "verts": obj_verts,
@@ -111,7 +111,7 @@ def render(texture_image_path: str,
                     and smpl uv map {smpl_uv_map_path}
                     and obj mesh {obj_mesh_path}
                     and output path {output_path}
-                    and orientation {m}""")
+                    and orientation {m} \n""")
 
         render_mesh_textured(
             verts=obj_verts,
@@ -124,13 +124,15 @@ def render(texture_image_path: str,
             output_path=os.path.join(output_path,m),
             output_filename=file_name,
             azimut=rotation_dict[m],
-            at=obj_verts.mean(dim=0),
+            at=at,
             cam_dist=cam_dist,
             background=background_image,
             anti_aliasing=anti_aliasing,
             x_axis_weight=1.0,
             y_axis_weight=1.0,
         )
+
+        logger.error(f"at = {at}")
         eye_position = [
             at_aux[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
             at_aux[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),

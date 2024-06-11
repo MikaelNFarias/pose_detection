@@ -3,8 +3,8 @@ import numpy as np
 import smplx as SMPL
 import logging
 import re
-from typing import List,Any,Optional
-
+from typing import List,Any,Optional,Dict
+from time import time
 import json
 import sys
 import numpy as np
@@ -198,28 +198,6 @@ def point_segmentation_to_face_segmentation(
     return face_segmentation_dict
 
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='Create face segmentation from \
-                                     point segmentation of smpl/smplx models.')
-    parser.add_argument('--create_face_segmentation', action='store_true')
-    args = parser.parse_args()
-
-    if args.create_face_segmentation:
-        import smplx
-
-        segm_path = "data/smplx/point_segmentation_meshcapade.json"
-        with open(segm_path, "r") as f:
-            point_segmentation = json.load(f)
-
-        model_path = "data/smplx"
-        smplx_faces = smplx.SMPLX(model_path, ext="pkl").faces
-
-        save_as = "data/smplx/smplx_body_parts_2_faces.json"
-
-        _ = point_segmentation_to_face_segmentation(point_segmentation,
-                                                    smplx_faces,
-                                                    save_as)
 
 def convert_numpy_to_list(dictionary: dict):
 
@@ -228,3 +206,51 @@ def convert_numpy_to_list(dictionary: dict):
             dictionary[key] = value.tolist()
 
     return dictionary
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+    
+def timer_function(func):
+    def wrapper(*args, **kwargs):
+        t1 = time()
+        result = func(*args, **kwargs)
+        t2 = time()
+        print(f"Function {func.__name__!r} executed in {(t2-t1):.4f}s")
+        return  result
+    return wrapper
+
+def save_measurements_to_json(measurements: Dict[Any,Any],
+                              json_file_path: str,
+                              texture: str,
+                              background: str,
+                              unit='cm',
+                              render_data= None,
+                              plane_data = None,
+                              **kwargs) -> None:
+
+    file_numeration = render_data['file_numeration']
+    json_file_path = os.path.join(json_file_path,f"{render_data['dataset']}_{file_numeration}_annotation.json")
+    data_json = {
+        "textura": texture,
+        "background": background,
+        "medidas_antropometricas": measurements,
+        'unidade':unit,
+
+    }
+    if render_data is not None:
+        ##del render_data['file_numeration']
+        render_data = convert_numpy_to_list(render_data)
+        data_json.update(render_data)
+    if plane_data is not None:
+        plane_data = convert_numpy_to_list(plane_data)
+        data_json.update(plane_data)
+
+
+
+    with open(json_file_path,'w+') as f:
+        json.dump(data_json,f, indent=4,cls=NumpyEncoder)
+
+    print(f"Arquivo JSON {json_file_path} salvo com sucesso")

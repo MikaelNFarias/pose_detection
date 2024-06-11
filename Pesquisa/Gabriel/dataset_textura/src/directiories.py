@@ -4,6 +4,7 @@ ROOT_DIR = Path(__file__).parent.parent.absolute()
 DATA_DIR = ROOT_DIR / 'data'
 EDA_DIR = ROOT_DIR / 'eda'
 SAMPLE_DATA_DIR = ROOT_DIR / 'sample_data'
+SMPL_DIR = SAMPLE_DATA_DIR / 'SMPL' / 'models'
 SRC_DIR = ROOT_DIR / 'src'
 
 ####
