@@ -211,7 +211,10 @@ class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
+        if isinstance(obj, (float, np.float32, np.float64)):
+            return format(obj, '.4f')
+        return super().default(obj)
+
     
 def timer_function(func):
     def wrapper(*args, **kwargs):
@@ -248,9 +251,21 @@ def save_measurements_to_json(measurements: Dict[Any,Any],
         plane_data = convert_numpy_to_list(plane_data)
         data_json.update(plane_data)
 
-
+    data_json = format_floats(data_json)
 
     with open(json_file_path,'w+') as f:
         json.dump(data_json,f, indent=4,cls=NumpyEncoder)
 
     print(f"Arquivo JSON {json_file_path} salvo com sucesso")
+
+
+def format_floats(obj):
+    if isinstance(obj, float):
+        return float(format(obj, '.4f'))
+    elif isinstance(obj, np.ndarray):
+        return np.array([format_floats(e) for e in obj.tolist()])
+    elif isinstance(obj, list):
+        return [format_floats(e) for e in obj]
+    elif isinstance(obj, dict):
+        return {k: format_floats(v) for k, v in obj.items()}
+    return obj

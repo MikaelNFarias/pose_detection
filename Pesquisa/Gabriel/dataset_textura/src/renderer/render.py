@@ -76,11 +76,6 @@ def render(texture_image_path: str,
     at_aux = at.tolist()
 
 
-    #obj_faces_verts  = obj_facets.textures_idx[None, ...]
-    # (1, F, 3)
-
-    ## get the verts and faces from obj and uv map from smpl
-
     _, smpl_faces, smpl_aux = load_obj(smpl_uv_map_path)
     smpl_verts_uvs = smpl_aux.verts_uvs[None, ...]  # (1, F, 3)
     smpl_faces_uvs = smpl_faces.textures_idx[None, ...]  # (1, F, 3)
@@ -103,7 +98,7 @@ def render(texture_image_path: str,
             logger.error(f"Invalid view {m}")
             continue
 
-        file_name: str = f"{dataset}_{file_numeration}_{m}_camdist_{cam_dist}_render.png"
+        file_name: str = f"{dataset}_{file_numeration}_{m}_camdist_{cam_dist:.4f}_render.png"
 
         logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}
@@ -132,7 +127,6 @@ def render(texture_image_path: str,
             y_axis_weight=1.0,
         )
 
-        logger.error(f"at = {at}")
         eye_position = [
             at_aux[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
             at_aux[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
