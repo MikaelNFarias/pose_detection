@@ -286,9 +286,9 @@ def save_to_json(json_file_path,render_data = None,
     with open(json_file_path,'w+') as f:
         json.dump(data_json,f, indent=4,cls=NumpyEncoder)
 
-def format_floats(obj):
+def format_floats(obj, precision=4):
     if isinstance(obj, float):
-        return float(format(obj, '.4f'))
+        return float(format(obj, f'.{precision}f'))
     elif isinstance(obj, np.ndarray):
         return np.array([format_floats(e) for e in obj.tolist()])
     elif isinstance(obj, list):
