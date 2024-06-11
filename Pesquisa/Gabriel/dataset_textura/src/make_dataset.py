@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-import json
+import itertools
 import sys
 import numpy as np
 import random
@@ -40,9 +40,19 @@ def make_dataset(meshes_path: str,
         glob(os.path.join(background_folder,'*.png'))
     
 
+    # combinations = list(itertools.product(meshes,textures,backgrounds))
+    # CAMERA_DISTANCES = np.linspace(2,3.8,15)
 
-    for idx,mesh in enumerate(meshes):
-        if idx >= stop_after:
+    # for _ in range(N):
+    #     for combo in combinations:
+    #         params ={
+    #             'mesh': combo[0],
+    #             'texture': combo[1],
+    #             'background': combo[2],
+    #             'cam_dist': random.choice(CAMERA_DISTANCES),
+    #         }
+    for idx_mesh,mesh in enumerate(meshes):
+        if idx_mesh == stop_after:
             break
         
         texture =  random.choice(textures)
