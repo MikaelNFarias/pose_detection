@@ -10,6 +10,7 @@ import sys
 import numpy as np
 from scipy.spatial import ConvexHull
 import os
+import torch
 import argparse
 
 
@@ -213,6 +214,9 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         if isinstance(obj, (float, np.float32, np.float64)):
             return format(obj, '.4f')
+
+        if isinstance(obj, torch.Tensor):
+            return obj.tolist()
         return super().default(obj)
 
     
@@ -232,6 +236,7 @@ def save_measurements_to_json(measurements: Dict[Any,Any],
                               unit='cm',
                               render_data= None,
                               plane_data = None,
+                              camera_data = None,
                               **kwargs) -> None:
 
     file_numeration = render_data['file_numeration']
@@ -258,6 +263,28 @@ def save_measurements_to_json(measurements: Dict[Any,Any],
 
     print(f"Arquivo JSON {json_file_path} salvo com sucesso")
 
+def save_to_json(json_file_path,render_data = None,
+                 plane_data=None,
+                 measurement_data=None,
+                 cam_data=None,
+                 **kwargs) -> None:
+    
+    json_file_path = f"{json_file_path}.json"
+    data_json = {}
+    ## add kwargs to data_json
+    if kwargs:
+        data_json.update(kwargs)
+    if measurement_data is not None:
+        data_json.update(measurement_data)
+    if render_data is not None:
+        data_json.update(render_data)
+    if plane_data is not None:
+        data_json.update(plane_data)
+    if cam_data is not None:
+        data_json.update(cam_data)
+    
+    with open(json_file_path,'w+') as f:
+        json.dump(data_json,f, indent=4,cls=NumpyEncoder)
 
 def format_floats(obj):
     if isinstance(obj, float):
@@ -268,4 +295,8 @@ def format_floats(obj):
         return [format_floats(e) for e in obj]
     elif isinstance(obj, dict):
         return {k: format_floats(v) for k, v in obj.items()}
+    elif isinstance(obj, tuple):
+        return tuple(format_floats(e) for e in obj)
+    elif isinstance(obj,torch.Tensor):
+        return torch.tensor([format_floats(e.item()) for e in obj.flatten()]).reshape(obj.shape)
     return obj

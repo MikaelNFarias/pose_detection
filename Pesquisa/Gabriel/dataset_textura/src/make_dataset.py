@@ -40,13 +40,14 @@ def make_dataset(meshes_path: str,
 
     for idx,mesh in enumerate(meshes):
         if idx >= stop_after:
+
             break
         texture =  random.choice(textures)
         background_image = random.choice(backgrounds)
 
         CAMERA_DISTANCES = np.linspace(2,3.8,15)
-        try:
-            for _ in range(3):
+        for _ in range(3):
+            try:
                 cam_dist = random.choice(CAMERA_DISTANCES)
                 render_data = rd.render(texture_image_path=texture,
                     smpl_model_path=smpl_model_path,
@@ -58,10 +59,26 @@ def make_dataset(meshes_path: str,
                     cam_dist=cam_dist,
                     background_image_path=background_image,
                 )
-        except Exception as e:
-            logger.error(f"Erro ao renderizar {mesh}")
-            logger.error(e)
-            continue
+            
+            except Exception as e:
+                logger.error(f"Erro ao renderizar {mesh}")
+                logger.error(e)
+                continue
+
+            finally:
+                try:
+                    if render_data is not None:
+                        camera_data = render_data.copy()
+                        camera_data = format_floats(camera_data)
+                        del camera_data['verts']
+                        save_to_json(os.path.join(CAMERA_ANNOTATION_DIR,f"{dataset}_{render_data['file_numeration']}_{cam_dist:.4f}"),
+                                     render_data = camera_data,
+                                     background = background_image.split("/")[-1],
+                                     texture = texture.split("/")[-1],)
+                except Exception as e:
+                    logger.error(f"Erro ao salvar anotações de camera {mesh}")
+                    logger.error(e)
+                    continue
 
 
     logger.info(f"""Finalizado a renderização do {mesh}""")
@@ -76,13 +93,20 @@ def make_dataset(meshes_path: str,
     plane_data = measurer.planes_info
 
     del render_data['verts']
-    save_measurements_to_json(
-        measurements=measurements,
-        json_file_path=os.path.join(output_folder,'annotations'),
-        texture = texture,
-        background= background_image,
-        render_data = render_data,
-        plane_data = plane_data
+
+    # save measurements to json
+    file_numeration = render_data['file_numeration']
+    save_to_json(
+        json_file_path=os.path.join(MEASUREMENTS_ANNOTATION_DIR,f"{dataset}_{render_data['file_numeration']}"),
+        measurements_data=format_floats(measurements),
+        file_numeration=file_numeration,
+    )
+
+
+    save_to_json(
+        json_file_path=os.path.join(PLANE_ANNOTATION_DIR,f"{dataset}_{render_data['file_numeration']}"),
+        plane_data = format_floats(plane_data),
+        file_numeration=file_numeration,
     )
 
 
@@ -96,7 +120,7 @@ if __name__ == "__main__":
     make_dataset(meshes_path=MESHES_DIR,
                  textures_path=TEXTURES_DIR,
                  background_folder=BACKGROUNDS_DIR,
-                 stop_after=2)
+                 stop_after=1)
 
 
     ## cam_dist -> sai do nome da imagem
