@@ -25,6 +25,7 @@ data/textures/train/*
 !data/schemas/train/.gitkeep
 !data/textures/test/.gitkeep
 !data/textures/train/.gitkeep
+!*.gitkeep
 .env
 __pycache__/
 downloads/
