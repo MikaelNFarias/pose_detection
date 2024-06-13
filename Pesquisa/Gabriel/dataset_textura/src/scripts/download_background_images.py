@@ -19,7 +19,7 @@ def download_images(query, count, dest_folder, api_key):
     QUERY_PARAMS = {
         "query": "livingRoom",
         "per_page": str(count),
-        "client_id": os.getenv("UNSPLASH_API_KEY")
+        "secret_key": os.getenv("UNSPLASH_API_KEY")
     }
     url = f'{BASE_URL}/{ROUTE}?{"&".join([*QUERY_PARAMS.values()])}'
     print(url)

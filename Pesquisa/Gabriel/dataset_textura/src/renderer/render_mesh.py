@@ -6,7 +6,8 @@ import cv2 as cv
 from PIL import Image
 import os
 
-from typing import Sequence, List, Any
+from typing import Sequence, List, Any, Tuple
+
 from pytorch3d.structures import Meshes
 from pytorch3d.renderer import (
     look_at_view_transform,
@@ -23,46 +24,36 @@ from pytorch3d.renderer import (
 
 
 def render_mesh_textured(
-    verts: np.ndarray | torch.Tensor,
-    textures : np.ndarray | torch.Tensor,
-    verts_uvs : np.ndarray | torch.Tensor,
-    faces_uvs : np.ndarray | torch.Tensor,
-    faces_vertices : np.ndarray | torch.Tensor,
-    image_size :int = None,
-    cam_pos : np.ndarray | torch.Tensor = None,
-    azimut : int = 0,
-    mesh_rot: int = None,
-    background : np.ndarray | torch.Tensor = None,
-    output_path: str = None,
-    output_filename: str = None,
-    up : Sequence = None,
-    at : Sequence = None,
-    cam_dist: float = 1.0,
-    x_axis_weight: float = 1.0,
-    y_axis_weight: float = 1.0,
-    z_axis_weight: float = 1.0,
-    background_image: np.ndarray | torch.Tensor = None,
-    anti_aliasing: bool = False,
-    aa_factor : int = 2,
-) -> None:
+        verts: np.ndarray | torch.Tensor,
+        textures: np.ndarray | torch.Tensor,
+        verts_uvs: np.ndarray | torch.Tensor,
+        faces_uvs: np.ndarray | torch.Tensor,
+        faces_vertices: np.ndarray | torch.Tensor,
+        image_size: int = None,
+        cam_pos: np.ndarray | torch.Tensor = None,
+        background: np.ndarray | torch.Tensor = None,
+        output_path: str = None,
+        output_filename: str = None,
+        up: Sequence = None,
+        at: np.ndarray = None,
+        background_image: np.ndarray | torch.Tensor = None,
+        eye_position: Sequence[float] = None,
+) -> Any:
     batch_size = 1
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # default image size
-    at_position = at.tolist()
+    try:
+        at_position = at.tolist()
+    except:
+        at_position = at
     #mean_position = mean_position.tolist()
-    eye_position = [
-        at_position[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(azimut))),
-        at_position[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(azimut))),
-        at_position[2],
-    ]
-
 
     if background_image is not None:
         background_image = cv.imread(background_image)
 
     if up is None:
-        up = [0,0,1]
+        up = [0, 0, 1]
 
     if image_size is None:
         image_size = 512
@@ -71,13 +62,8 @@ def render_mesh_textured(
     if cam_pos is None:
         cam_pos = torch.tensor([.5, 3, 1.2])
 
-    # default mesh rotation
-    if mesh_rot is None:
-        mesh_rot = 0
-
     # default background color
 
-    
 
     tex = torch.from_numpy(textures / 255.0)[None].to(device)
     textures_rgb = TexturesUV(
@@ -89,14 +75,17 @@ def render_mesh_textured(
         faces=[faces_vertices.to(device)],
         textures=textures_rgb,
     )
-
-    lights = PointLights(
-        device=device,
-        location=[eye_position], # [at_position],
-        ambient_color =  [[1.,1.,1.]],
-        diffuse_color =  [[0.002,0.002,0.002]],
-        specular_color = [[0.,0.,0.]],
-    )
+    try:
+        lights = PointLights(
+            device=device,
+            location=[eye_position],  # [at_position],
+            ambient_color=[[1., 1., 1.]],
+            diffuse_color=[[0.002, 0.002, 0.002]],
+            specular_color=[[0., 0., 0.]],
+        )
+    except Exception as e:
+        print(eye_position)
+        sys.exit(0)
     # TODO definir propriedades luminosas no objeto e na fonte de luz
     # Analisar normais do vertices [ não tem normais]
 
@@ -105,16 +94,20 @@ def render_mesh_textured(
     # So we move the camera by mesh_rotation in the azimuth direction.
 
     #R,T = look_at_view_transform(at,
-    if True:
-        R, T = look_at_view_transform(eye = [eye_position],
-                                      at =  [at_position],
-                                      up =  [up])
-    ##if side:
-    ##    R, T = look_at_view_transform(eye = ((2.5,0.8,1.0),),
-    ##                                  at = ((0.5,0.8,1.2),),
-    ##                                  up = ((0, 0, 1),))
-    #T[0, 1] += cam_pos[1]
-    cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
+    try:
+        if True:
+            R, T = look_at_view_transform(eye=[eye_position],
+                                          at=[at_position],
+                                          up=[up])
+    except Exception as e:
+        print("Rotation and translation could not be computed")
+        sys.exit(1)
+
+    try:
+        cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
+    except Exception as e:
+        print(e)
+
     #cameras = OrthographicCameras(device=device, T=T, R=R)
 
     # Define the settings for rasterization and shading. Here we set the output image to be of size
@@ -129,7 +122,7 @@ def render_mesh_textured(
         blend_params = BlendParams(background_color=background_color)
     else:
         background_color = background
-        blend_params = BlendParams(background_color = background_color/255.0)
+        blend_params = BlendParams(background_color=background_color / 255.0)
 
     raster_settings = RasterizationSettings(
         image_size=image_size,
@@ -137,10 +130,10 @@ def render_mesh_textured(
         faces_per_pixel=1,
     )
 
-
     # Create a Phong renderer by composing a rasterizer and a shader. The textured Phong shader will
     # interpolate the texture uv coordinates for each vertex, sample from a texture image and
     # apply the Phong lighting model
+
     renderer = MeshRenderer(
         rasterizer=MeshRasterizer(cameras=cameras, raster_settings=raster_settings),
         shader=SoftPhongShader(
@@ -156,7 +149,7 @@ def render_mesh_textured(
     rgbArray[..., 0] = (R_channel * 255).astype(int)
     rgbArray[..., 1] = (G_channel * 255).astype(int)
     rgbArray[..., 2] = (B_channel * 255).astype(int)
-    img = Image.fromarray(rgbArray, mode="RGB")
+    img = Image.fromarray(rgbArray)
 
     if output_filename is not None:
         print("Saving ", os.path.join(output_path, output_filename), "\n")

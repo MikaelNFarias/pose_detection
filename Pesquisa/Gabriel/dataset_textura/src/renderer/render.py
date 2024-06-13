@@ -24,22 +24,21 @@ from src.utils import *
 
 
 def render(texture_image_path: str,
-           smpl_model_path: str,
-           smpl_model_type: str,
            smpl_uv_map_path: str,
            obj_mesh_path: str,
            output_path: str,
-           gender: str = 'female',
-           views: List[str] = ('frontal', 'side'),
+           view: str,
+           at: Sequence[float],
            debug: bool = False,
            dataset: str = 'skeletex',
            image_size: int = 128,
            cam_dist: float = 1.0,
            background_image_path: str | None = None,
            anti_aliasing=False,
-           x_axis_weight = 1.0,
-           y_axis_weight = 1.0,
-           noise_std: Sequence = [0.2,0.2,0.035]) -> Dict[str,Any]:
+
+           eye_position: Sequence[float] = None,
+           noise_std: Sequence = [0.2,0.2,0.035],
+    ) -> Dict[str,Any]:
 
     """
 
@@ -74,15 +73,15 @@ def render(texture_image_path: str,
     obj_verts, obj_facets, obj_aux = load_obj(obj_mesh_path)
 
     #at_orignal = obj_verts.mean(dim=10)
-    at_original = obj_verts.mean(dim=0)
-    noise = torch.normal(mean=0,std=torch.tensor(noise_std))
+    #at_original = obj_verts.mean(dim=0)
+    #noise = torch.normal(mean=0,std=torch.tensor(noise_std))
 
 
-    keep_original_camera_orientation = torch.rand(at_original.size()) < 0.6
-    at = torch.where(keep_original_camera_orientation,at_original,at_original + noise)
+    #keep_original_camera_orientation = torch.rand(at_original.size()) < 0.6
+    #at = torch.where(keep_original_camera_orientation,at_original,at_original + noise)
     #print(at_orignal,at)
     # vary
-    at_aux = at.tolist()
+    at_aux = at
 
 
     _, smpl_faces, smpl_aux = load_obj(smpl_uv_map_path)
@@ -96,58 +95,31 @@ def render(texture_image_path: str,
         'back': 180.0,
     }  
 
-    RETURN_DATA = {
-        "verts": obj_verts,
-        "file_numeration": file_numeration,
-        "dataset": dataset,
-    }
 
-    for m in tqdm(views):
-        if m.lower() not in ['frontal', 'side', 'back']:
-            logger.error(f"Invalid view {m}")
-            continue
+    if view.lower() not in ('frontal','right','side','left','back'):
+        raise ValueError(f'View {view} not recognized')
 
-        file_name: str = f"{dataset}_{file_numeration}_{m}_camdist_{cam_dist:.4f}_render.png"
+    file_name: str = f"{dataset}_{file_numeration}_{view}_camdist_{cam_dist:.4f}_render.png"
 
-        logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
+    logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}
-                    and smpl model {smpl_model_path}
                     and smpl uv map {smpl_uv_map_path}
                     and obj mesh {obj_mesh_path}
                     and output path {output_path}
                     and camera_oriented to {at_aux}
-                    and orientation {m} \n""")
+                    and orientation {view} \n""")
 
-        render_mesh_textured(
+    render_mesh_textured(
             verts=obj_verts,
             textures=texture_image,
             verts_uvs=smpl_verts_uvs,
             faces_uvs=smpl_faces_uvs,
             faces_vertices=obj_facets.verts_idx,
             image_size=image_size,  # image resolution  # camera position
-            mesh_rot=0,  # mesh rotation in Y axis in degrees
-            output_path=os.path.join(output_path,m),
+            output_path=os.path.join(output_path,view),
             output_filename=file_name,
-            azimut=rotation_dict[m],
             at=at,
-            cam_dist=cam_dist,
             background=background_image,
-            anti_aliasing=anti_aliasing,
-            x_axis_weight=1.0,
-            y_axis_weight=1.0,
+            eye_position=eye_position
         )
 
-        eye_position = [
-            at_aux[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
-            at_aux[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
-            at_aux[2],
-        ]
-        RETURN_DATA[f"eye_position_{m}"] = eye_position
-
-    RETURN_DATA["at"] = at_aux
-    RETURN_DATA["cam_dist"] = cam_dist
-    RETURN_DATA['up'] = (0,0,1)
-
-
-
-    return RETURN_DATA
