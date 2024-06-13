@@ -1,22 +1,22 @@
 {
-    "background": "Untitled.jpeg",
-    "texture": "SMPLitex-texture-00253.png",
+    "background": "background_1.jpg",
+    "texture": "SMPLitex-texture-00219.png",
     "file_numeration": "000000",
     "dataset": "skeletex",
     "eye_position_frontal": [
-        0.5,
-        3.9571,
-        1.2
+        0.5486,
+        3.8329,
+        1.1717
     ],
     "eye_position_side": [
-        3.6571,
-        0.8,
-        1.2
+        3.7057,
+        0.6757,
+        1.1717
     ],
     "at": [
-        0.5,
-        0.8,
-        1.2
+        0.5486,
+        0.6757,
+        1.1717
     ],
     "cam_dist": 3.1571,
     "up": [

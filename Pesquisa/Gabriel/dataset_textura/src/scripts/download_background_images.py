@@ -3,7 +3,7 @@ import os
 import sys
 from dotenv import load_dotenv
 sys.path.append('..')
-from src.directiories import *
+from src.directories import *
 
 try:
     load_dotenv()
@@ -14,12 +14,21 @@ except Exception as e:
 
 def download_images(query, count, dest_folder, api_key):
     os.makedirs(dest_folder, exist_ok=True)
-    url = f"https://api.unsplash.com/search/photos?query={query}&per_page={count}&client_id={api_key}"
-    
+    BASE_URL = 'https://api.unsplash.com'
+    ROUTE = 'search/photos'
+    QUERY_PARAMS = {
+        "query": "livingRoom",
+        "per_page": str(count),
+        "client_id": os.getenv("UNSPLASH_API_KEY")
+    }
+    url = f'{BASE_URL}/{ROUTE}?{"&".join([*QUERY_PARAMS.values()])}'
+    print(url)
     try:
         response = requests.get(url)
         data = response.json()
         for i, image in enumerate(data['results']):
+            print(len(data['results']))
+            break
             image_url = image['urls']['regular']
             image_response = requests.get(image_url)
             with open(os.path.join(dest_folder, f'background_{i+1}.jpg'), 'wb') as f:
@@ -32,7 +41,7 @@ def download_images(query, count, dest_folder, api_key):
 unsplash_api_key = os.getenv("UNSPLASH_API_KEY")
 
 # Define the search query and number of images you need
-search_query = 'living room'
+search_query = 'livingroom'
 num_images = 50 # max per hour
 destination_folder = os.path.join(ROOT_DIR,'downloads')
 

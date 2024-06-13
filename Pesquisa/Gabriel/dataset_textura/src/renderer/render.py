@@ -38,7 +38,8 @@ def render(texture_image_path: str,
            background_image_path: str | None = None,
            anti_aliasing=False,
            x_axis_weight = 1.0,
-           y_axis_weight = 1.0) -> Dict[str,Any]:
+           y_axis_weight = 1.0,
+           noise_std: Sequence = [0.2,0.2,0.035]) -> Dict[str,Any]:
 
     """
 
@@ -70,9 +71,17 @@ def render(texture_image_path: str,
     ##get the numeration on texture image file
     file_numeration: str | None = extract_numeration(obj_mesh_path)
     #smpl = initialize_smpl(smpl_model_path,gender)
-
     obj_verts, obj_facets, obj_aux = load_obj(obj_mesh_path)
-    at = obj_verts.mean(dim=0)
+
+    #at_orignal = obj_verts.mean(dim=10)
+    at_original = obj_verts.mean(dim=0)
+    noise = torch.normal(mean=0,std=torch.tensor(noise_std))
+
+
+    keep_original_camera_orientation = torch.rand(at_original.size()) < 0.6
+    at = torch.where(keep_original_camera_orientation,at_original,at_original + noise)
+    #print(at_orignal,at)
+    # vary
     at_aux = at.tolist()
 
 
@@ -106,6 +115,7 @@ def render(texture_image_path: str,
                     and smpl uv map {smpl_uv_map_path}
                     and obj mesh {obj_mesh_path}
                     and output path {output_path}
+                    and camera_oriented to {at_aux}
                     and orientation {m} \n""")
 
         render_mesh_textured(

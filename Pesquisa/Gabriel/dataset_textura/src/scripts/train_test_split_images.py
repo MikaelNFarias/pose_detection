@@ -3,7 +3,7 @@ import shutil
 import random
 import sys
 sys.path.append('..')
-from src.directiories import *
+from src.directories import *
 
 def train_test_split_images(source_folder, train_folder, test_folder, split_ratio=0.8):
     # Create the train and test directories if they don't exist

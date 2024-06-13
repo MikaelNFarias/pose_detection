@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append('../')
-from src.directiories import *
+from src.directories import *
 def numerize_directory(directory: str,type: str):
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory,f))]
     files.sort()

@@ -15,7 +15,7 @@ import renderer.render as rd
 from utils import *
 
 
-from directiories import *
+from directories import *
 
 
 
@@ -32,6 +32,7 @@ def make_dataset(meshes_path: str,
 
 
     smpl_model_path = smpl_model_path
+    background_folder = os.path.join(background_folder,'train')
     meshes_path: str = os.path.join(meshes_path,'train')
     textures : List[str] = glob(os.path.join(textures_path, '*.png'))
     meshes: List[str] = sorted(glob(os.path.join(meshes_path, '*.obj')))
@@ -51,6 +52,7 @@ def make_dataset(meshes_path: str,
     #             'background': combo[2],
     #             'cam_dist': random.choice(CAMERA_DISTANCES),
     #         }
+
     for idx_mesh,mesh in enumerate(meshes):
         if idx_mesh == stop_after:
             break
@@ -132,8 +134,10 @@ if __name__ == "__main__":
                  stop_after=1)
 
 
-    ## cam_dist -> sai do nome da imagem
-    ## at -> sai da anotação (media dos vertices)
-    ## eye_position = [at[0] + x_axis_weight * (cam_dist * np.cos(np.deg2rad(rotation_dict[m]))),
-    ##                at[1] + y_axis_weight * (cam_dist * np.sin(np.deg2rad(rotation_dict[m]))),
-    ##                at[2]]
+    #  TODO :
+    # VARIAR VALORES (X,Y,Z) DO AT NUMA FAIXA PRE ESTBELECIDA [x]
+    # VARIAR DISTÂNCIA DA CÂMERA [x]
+    # VARIAR AZIMUT E ELEVAÇÃO [x]
+
+    # VARIAR DISTANCIA FOCAL
+    # VARIAR COEFICIENTE DE DISTORCAO
