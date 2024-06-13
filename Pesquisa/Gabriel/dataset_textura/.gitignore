@@ -5,8 +5,7 @@ env/
 src/__pycache__/
 sample_data/*
 sample_data/SMPL/
-data/**
-!data/
+/data/*
 !data/**/
 .env
 __pycache__/
