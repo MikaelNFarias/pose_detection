@@ -27,6 +27,9 @@ TRAIN_RENDER_ANNOTATION_DIR = OUTPUT_DIR / 'train' / 'annotations' /'render'
 TEST_RENDER_ANNOTATION_DIR = OUTPUT_DIR / 'test' / 'annotations' /'render'
 TRAIN_MEASUREMENTS_ANNOTATION_DIR = OUTPUT_DIR / 'train' / 'annotations' /'measurements'
 TRAIN_PLANE_ANNOTATION_DIR = OUTPUT_DIR / 'train' / 'annotations' /'plane'
+
+TEST_MEASUREMENTS_ANNOTATION_DIR = OUTPUT_DIR / 'test' / 'annotations' /'measurements'
+TEST_PLANE_ANNOTATION_DIR = OUTPUT_DIR / 'test' / 'annotations' /'plane'
 PLANE_ANNOTATION_DIR = ANNOTATION_DIR / 'plane'
 ####
 

@@ -33,11 +33,9 @@ def render(texture_image_path: str,
            dataset: str = 'skeletex',
            image_size: int = 128,
            cam_dist: float = 1.0,
+           sample_number: int = None,
            background_image_path: str | None = None,
-           anti_aliasing=False,
-
            eye_position: Sequence[float] = None,
-           noise_std: Sequence = [0.2,0.2,0.035],
     ) -> Dict[str,Any]:
 
     """
@@ -69,18 +67,10 @@ def render(texture_image_path: str,
 
     ##get the numeration on texture image file
     file_numeration: str | None = extract_numeration(obj_mesh_path)
-    #smpl = initialize_smpl(smpl_model_path,gender)
-    obj_verts, obj_facets, obj_aux = load_obj(obj_mesh_path)
+    
 
-    #at_orignal = obj_verts.mean(dim=10)
-    #at_original = obj_verts.mean(dim=0)
-    #noise = torch.normal(mean=0,std=torch.tensor(noise_std))
+    obj_verts, obj_facets, obj_aux = load_obj(obj_mesh_path) # load obj verts, facets and aux
 
-
-    #keep_original_camera_orientation = torch.rand(at_original.size()) < 0.6
-    #at = torch.where(keep_original_camera_orientation,at_original,at_original + noise)
-    #print(at_orignal,at)
-    # vary
     at_aux = at
 
 
@@ -88,18 +78,12 @@ def render(texture_image_path: str,
     smpl_verts_uvs = smpl_aux.verts_uvs[None, ...]  # (1, F, 3)
     smpl_faces_uvs = smpl_faces.textures_idx[None, ...]  # (1, F, 3)
 
-    #rotation dict
-    rotation_dict: Dict[str, float] = {
-        'frontal': 90.0,
-        'side': 0.0,
-        'back': 180.0,
-    }  
 
 
     if view.lower() not in ('frontal','right','side','left','back'):
         raise ValueError(f'View {view} not recognized')
 
-    file_name: str = f"{dataset}_{file_numeration}_{view}_camdist_{cam_dist:.4f}_render.png"
+    file_name: str = f"{dataset}_{file_numeration}_{view}_{N}_render.png"
 
     logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}

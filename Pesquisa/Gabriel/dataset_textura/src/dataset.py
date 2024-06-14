@@ -1,5 +1,4 @@
 import glob
-import os
 import random
 import json
 from pathlib import Path
@@ -8,6 +7,7 @@ from typing import List, Tuple, Dict, Any, Sequence
 import itertools
 import shutil
 import sys
+import os
 import argparse
 import time
 
@@ -47,7 +47,7 @@ class DatasetGenerator:
                  noise_at: Sequence[float] = (0.2, 0.2, 0.05),
                  cam_dist_range: np.ndarray = np.linspace(2, 3.8, 15),
                  x_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
-                 y_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),):
+                 y_weight_range: np.ndarray = np.linspace(.8, 1.5, 5), ):
 
         self.meshes_dir = os.path.join(meshes_dir, dataset)
         self.textures_dir = textures_dir
@@ -70,7 +70,7 @@ class DatasetGenerator:
             'back': 270,
             'right': 180,
         }
-        self.VIEWS = ('frontal', 'right','left')
+        self.VIEWS = ('frontal', 'side')
 
         self.cam_dist_range = cam_dist_range
         self.x_weight_range = x_weight_range
@@ -83,7 +83,7 @@ class DatasetGenerator:
 
         self.measurer = ms.MeasureBody('smpl')
 
-    def generate_schemes(self, N: int,stop_after=None) -> None:
+    def generate_schemes(self, N: int, stop_after=None) -> None:
         if N > 0:
             train_meshes_dir = os.path.join(self.meshes_dir, 'train')
             test_meshes_dir = os.path.join(self.meshes_dir, 'test')
@@ -92,18 +92,19 @@ class DatasetGenerator:
             train_textures_dir = os.path.join(self.textures_dir, 'train')
             test_textures_dir = os.path.join(self.textures_dir, 'test')
 
-            train_meshes = glob.glob(os.path.join(train_meshes_dir, '*.obj'))
-            test_meshes = glob.glob(os.path.join(test_meshes_dir, '*.obj'))
-            train_backgrounds = glob.glob(os.path.join(train_backgrounds_dir, '*.png')) + \
+            train_meshes = sorted(glob.glob(os.path.join(train_meshes_dir, '*.obj')))
+            test_meshes = sorted(glob.glob(os.path.join(test_meshes_dir, '*.obj')))
+            train_backgrounds = sorted(glob.glob(os.path.join(train_backgrounds_dir, '*.png')) + \
                                 glob.glob(os.path.join(train_backgrounds_dir, '*.jpg')) + \
-                                glob.glob(os.path.join(train_backgrounds_dir, '*.jpeg'))
+                                glob.glob(os.path.join(train_backgrounds_dir, '*.jpeg')))
 
-            test_backgrounds = glob.glob(os.path.join(test_backgrounds_dir, '*.png')) + glob.glob(
-                os.path.join(test_backgrounds_dir, "*.jpg")) + glob.glob(os.path.join(test_backgrounds_dir, "*.jpeg"))
-            train_textures = glob.glob(os.path.join(train_textures_dir, "*.png")) + glob.glob(
-                os.path.join(train_textures_dir, "*.jpg")) + glob.glob(os.path.join(train_textures_dir, "*.jpeg"))
-            test_textures = glob.glob(os.path.join(test_textures_dir, "*.png")) + glob.glob(
-                os.path.join(test_textures_dir, "*.jpg")) + glob.glob(os.path.join(test_textures_dir, "*.jpeg"))
+
+            test_backgrounds = sorted(glob.glob(os.path.join(test_backgrounds_dir, '*.png')) + glob.glob(
+                os.path.join(test_backgrounds_dir, "*.jpg")) + glob.glob(os.path.join(test_backgrounds_dir, "*.jpeg")))
+            train_textures = sorted(glob.glob(os.path.join(train_textures_dir, "*.png")) + glob.glob(
+                os.path.join(train_textures_dir, "*.jpg")) + glob.glob(os.path.join(train_textures_dir, "*.jpeg")))
+            test_textures = sorted(glob.glob(os.path.join(test_textures_dir, "*.png")) + glob.glob(
+                os.path.join(test_textures_dir, "*.jpg")) + glob.glob(os.path.join(test_textures_dir, "*.jpeg")))
 
             # train_combinations = list(
             #     itertools.product(train_meshes, train_textures, train_backgrounds))
@@ -122,17 +123,15 @@ class DatasetGenerator:
                                                        stop_after=stop_after)
 
             with open(self.train_schema_path, 'w') as f:
-                json.dump(train_scheme, f, indent=4,cls=NumpyEncoder)
+                json.dump(train_scheme, f, indent=4, cls=NumpyEncoder)
 
             with open(self.test_schema_path, 'w') as f:
-                json.dump(test_scheme, f, indent=4,cls=NumpyEncoder)
-
+                json.dump(test_scheme, f, indent=4, cls=NumpyEncoder)
 
     def _random_biased_value(min_val=0.7, max_val=1.5, mean=1, std_dev=0.2):
         value = np.random.normal(mean, std_dev)
         value = np.clip(value, min_val, max_val)
         return value
-
 
     def _generate_render_scheme(self,
                                 meshes: List[str],
@@ -145,7 +144,8 @@ class DatasetGenerator:
             if stop_after is not None and idx_mesh == stop_after:
                 break
             file_numeration = extract_numeration(mesh)
-            for _ in range(N):
+            counter = 0
+            for i in range(N):
                 cam_dist = random.choice(self.cam_dist_range)
                 x_weight = np.random.choice(self.x_weight_range, p=[0.05, 0.15, 0.6, 0.15, 0.05])
                 y_weight = np.random.choice(self.y_weight_range, p=[0.05, 0.15, 0.6, 0.15, 0.05])
@@ -158,11 +158,13 @@ class DatasetGenerator:
                 radial_distortion = [random.uniform(*self.radial_distortion_coeffs[i]) for i in range(3)]
 
                 set_views = set()
-                for view in self.VIEWS:
+                for idx,view in enumerate(self.VIEWS):
+                    counter += 1
+                    logger.info(f"Generating render scheme for {mesh} with view = {view}.{counter} / {N * len(self.VIEWS)}")
                     if view not in set_views:
-                        if view == 'left' or view == 'right':
-                            view = np.random.choice(['left','right'])
-                            set_views.update(['right','left'])
+                        if view == 'side':
+                            view = np.random.choice(['left', 'right'])
+                            set_views.add('side')
 
                         eye_position = np.array([
                             at[0] + x_weight * cam_dist * np.cos(np.deg2rad(self.ROTATION_DICT[view])),
@@ -170,38 +172,41 @@ class DatasetGenerator:
                             at[2] + z_weight
                         ])
                         set_views.add(view)
-                        
+
                     scheme.append({
                         'mesh': mesh,
                         'texture': texture,
                         'background': background,
-                        'view': view if view.lower() not in ("left","right") else 'side',
+                        'view': view if view.lower() not in ("left", "right") else 'side',
                         'eye_position': eye_position,
                         'at': at,
+                        'image_size': self.image_size,
                         'focal_distance': focal_distance,
                         'radial_distortion': radial_distortion,
                         'file_numeration': file_numeration,
-                        'cam_dist': cam_dist,
-                        'saved': False
+                        'cam_dist': float(format(cam_dist,".4f")),
+                        'saved': False,
+                        'N':N
                     })
+
 
         return scheme
 
     @staticmethod
     def _load_mesh(mesh_path):
-        verts,faces,aux = load_obj(mesh_path)
-        return verts, faces , aux
+        verts, faces, aux = load_obj(mesh_path)
+        return verts, faces, aux
 
-    def _measure_mesh(self,mesh):
+    def _measure_mesh(self, mesh):
         obj_verts, obj_faces, obj_aux = self._load_mesh(mesh)
-        self.measurer.from_verts(verts = obj_verts)
+        self.measurer.from_verts(verts=obj_verts)
         measurements_names = self.measurer.all_possible_measurements
 
         self.measurer.measure(measurements_names)
         measurements = self.measurer.measurements
         plane_data = self.measurer.planes_info
 
-        return measurements,plane_data
+        return measurements, plane_data
 
     @timer_function
     def render_samples(self, dataset_type: str) -> None:
@@ -225,31 +230,38 @@ class DatasetGenerator:
                 try:
                     rd.render(
                         texture_image_path=sample['texture'],
-                        smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR,'smpl_uv.obj'),
+                        smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR, 'smpl_uv.obj'),
                         obj_mesh_path=sample['mesh'],
                         output_path=output_dir,
-                        cam_dist=sample['eye_position'][2],  # assuming Z as the distance for simplicity
+                        cam_dist=sample['cam_dist'],  # assuming Z as the distance for simplicity
                         background_image_path=sample['background'],
                         eye_position=sample['eye_position'],
-                        image_size=self.image_size,
+                        image_size=sample['image_size'],
                         at=sample['at'],
-                        view=sample['view']
+                        view=sample['view'],
+                        dataset=dataset_type,
+                        sample_number=sample["N"]
                     )
-                    measurements,plane_info = self._measure_mesh(sample['mesh'])
+                    measurements, plane_info = self._measure_mesh(sample['mesh'])
 
                     # Save annotation
                     match dataset_type:
                         case 'train':
+                            render_data = sample.copy()
+                            render_data['up'] = (0,0,1)
+                            del render_data['saved']
                             save_to_json(
-                                os.path.join(TRAIN_RENDER_ANNOTATION_DIR, f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_{sample['cam_dist']}"),
-                                render_data=sample,
+                                os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
+                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_{sample['cam_dist']}"),
+                                render_data=render_data,
                                 background=Path(sample['background']).name,
                                 texture=Path(sample['texture']).name
                             )
                             logger.info(f"Train render Annotation saved to {TRAIN_RENDER_ANNOTATION_DIR}")
 
                             save_to_json(
-                                os.path.join(TRAIN_MEASUREMENTS_ANNOTATION_DIR, f"{dataset_type}_measurements_{sample['file_numeration']}"),
+                                os.path.join(TRAIN_MEASUREMENTS_ANNOTATION_DIR,
+                                             f"{dataset_type}_measurements_{sample['file_numeration']}"),
                                 measurements_data=format_floats(measurements),
                                 file_numeration=sample['file_numeration']
                             )
@@ -257,27 +269,34 @@ class DatasetGenerator:
                             logger.info(f"Train measurements Annotation saved to {TRAIN_MEASUREMENTS_ANNOTATION_DIR}")
 
                             save_to_json(
-                                os.path.join(TRAIN_PLANE_ANNOTATION_DIR, f"{dataset_type}_plane_{sample['file_numeration']}"),
+                                os.path.join(TRAIN_PLANE_ANNOTATION_DIR,
+                                             f"{dataset_type}_plane_{sample['file_numeration']}"),
                                 plane_data=format_floats(plane_info),
                                 file_numeration=sample['file_numeration']
                             )
                             logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
                         case 'test':
+                            render_data = sample.copy()
+                            render_data['up'] = (0,0,1)
+                            del render_data['saved']
                             save_to_json(
-                                os.path.join(TEST_RENDER_ANNOTATION_DIR, f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}"),
+                                os.path.join(TEST_RENDER_ANNOTATION_DIR,
+                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}"),
                                 render_data=sample,
                                 background=Path(sample['background']).name,
                                 texture=Path(sample['texture']).name
                             )
 
                             save_to_json(
-                                os.path.join(TEST_MEASUREMENTS_ANNOTATION_DIR, f"{dataset_type}_measurements_{sample['file_numeration']}"),
+                                os.path.join(TEST_MEASUREMENTS_ANNOTATION_DIR,
+                                             f"{dataset_type}_measurements_{sample['file_numeration']}"),
                                 measurements_data=format_floats(measurements),
                                 file_numeration=sample['file_numeration']
                             )
 
                             save_to_json(
-                                os.path.join(TEST_PLANE_ANNOTATION_DIR, f"{dataset_type}_plane_{sample['file_numeration']}"),
+                                os.path.join(TEST_PLANE_ANNOTATION_DIR,
+                                             f"{dataset_type}_plane_{sample['file_numeration']}"),
                                 plane_data=format_floats(plane_info),
                                 file_numeration=sample['file_numeration']
                             )
@@ -294,7 +313,7 @@ class DatasetGenerator:
                 logger.info(f"Sample {sample['mesh']} already rendered.")
         # Save updated schema
         with open(schema_path, 'w') as f:
-            json.dump(scheme, f, indent=4,cls=NumpyEncoder)
+            json.dump(scheme, f, indent=4, cls=NumpyEncoder)
 
 
 # Exemplo de uso
@@ -305,11 +324,9 @@ if __name__ == "__main__":
     parser.add_argument('--textures_dir', type=str, default=TEXTURES_DIR, help='Path to textures directory')
     parser.add_argument('--backgrounds_dir', type=str, default=BACKGROUNDS_DIR, help='Path to backgrounds directory')
     parser.add_argument('--image-size', type=int, default=512, help='Image size to render')
-    parser.add_argument('-N',type=int,default=1,help='Number of samples to generate')
-
+    parser.add_argument('--sample-number', type=int, default=0, help='Number of samples to generate per mesh, each sample will generate N * len(Views)')
     parser.add_argument('--dataset-type', type=str, default='train', help='Dataset type')
     args = parser.parse_args()
-
 
     FOCAL_DISTANCES = (1.0, 1.5)
     RADIAL_DISTORTION_COEFFS = np.array([[0.1, 0.3], [0.1, 0.3], [0.1, 0.3]])
@@ -328,13 +345,10 @@ if __name__ == "__main__":
             image_size=args.image_size
         )
         #dataset_generator.generate_schemes(N=args.N)
+        dataset_generator.generate_schemes(N=args.sample_number)
         dataset_generator.render_samples(dataset_type=args.dataset_type)
 
 
     except Exception as e:
         logger.error(e)
         sys.exit(1)
-
-
-
-    
