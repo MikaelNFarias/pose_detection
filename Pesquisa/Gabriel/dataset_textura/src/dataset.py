@@ -80,6 +80,8 @@ class DatasetGenerator:
         self.faces = None
         self.aux = None
 
+        self.measurer = ms.MeasureBody('smpl')
+
     def generate_schemes(self, N: int,stop_after=None) -> None:
         if True:
             train_meshes_dir = os.path.join(self.meshes_dir, 'train')
@@ -178,18 +180,27 @@ class DatasetGenerator:
                         'focal_distance': focal_distance,
                         'radial_distortion': radial_distortion,
                         'file_numeration': file_numeration,
+                        'cam_dist': cam_dist,
                         'saved': False
                     })
 
         return scheme
 
     @staticmethod
-    def _load_mesh(self, mesh_path):
+    def _load_mesh(mesh_path):
         verts,faces,aux = load_obj(mesh_path)
         return verts, faces , aux
 
-    def measure_mesh(self):
-        pass
+    def _measure_mesh(self,mesh):
+        obj_verts, obj_faces, obj_aux = self._load_mesh(mesh)
+        self.measurer.from_verts(verts = obj_verts)
+        measurements_names = self.measurer.all_possible_measurements
+
+        self.measurer.measure(measurements_names)
+        measurements = self.measurer.measurements
+        plane_data = self.measurer.planes_info
+
+        return measurements,plane_data
 
     def render_samples(self, dataset_type: str) -> None:
         if dataset_type == 'train':
@@ -222,15 +233,54 @@ class DatasetGenerator:
                         at=sample['at'],
                         view=sample['view']
                     )
+                    measurements,plane_info = self._measure_mesh(sample['mesh'])
 
-                    # Save render data
-                    #file_numeration = extract_numeration(Path(sample['model']).name)
+                    # Save annotation
+                    match dataset_type:
+                        case 'train':
+                            save_to_json(
+                                os.path.join(TRAIN_RENDER_ANNOTATION_DIR, f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_{sample['cam_dist']}"),
+                                render_data=sample,
+                                background=Path(sample['background']).name,
+                                texture=Path(sample['texture']).name
+                            )
+                            logger.info(f"Train render Annotation saved to {TRAIN_RENDER_ANNOTATION_DIR}")
 
-                    save_to_json(os.path.join(TRAIN_RENDER_ANNOTATION_DIR,f"{dataset_type}_{sample['file_numeration']}_{sample['view']}"),
-                                 render_data=sample,
-                                 background=Path(sample['background']).name,
-                                 texture=Path(sample['texture']).name)
+                            save_to_json(
+                                os.path.join(TRAIN_MEASUREMENTS_ANNOTATION_DIR, f"{dataset_type}_measurements_{sample['file_numeration']}"),
+                                measurements_data=format_floats(measurements),
+                                file_numeration=sample['file_numeration']
+                            )
 
+                            logger.info(f"Train measurements Annotation saved to {TRAIN_MEASUREMENTS_ANNOTATION_DIR}")
+
+                            save_to_json(
+                                os.path.join(TRAIN_PLANE_ANNOTATION_DIR, f"{dataset_type}_plane_{sample['file_numeration']}"),
+                                plane_data=format_floats(plane_info),
+                                file_numeration=sample['file_numeration']
+                            )
+                            logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
+                        case 'test':
+                            save_to_json(
+                                os.path.join(TEST_RENDER_ANNOTATION_DIR, f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}"),
+                                render_data=sample,
+                                background=Path(sample['background']).name,
+                                texture=Path(sample['texture']).name
+                            )
+
+                            save_to_json(
+                                os.path.join(TEST_MEASUREMENTS_ANNOTATION_DIR, f"{dataset_type}_measurements_{sample['file_numeration']}"),
+                                measurements_data=format_floats(measurements),
+                                file_numeration=sample['file_numeration']
+                            )
+
+                            save_to_json(
+                                os.path.join(TEST_PLANE_ANNOTATION_DIR, f"{dataset_type}_plane_{sample['file_numeration']}"),
+                                plane_data=format_floats(plane_info),
+                                file_numeration=sample['file_numeration']
+                            )
+                        case _:
+                            raise ValueError("Invalid dataset type. Use ['train'] or ['test'].")
                     # Mark as saved
                     sample['saved'] = True
 
@@ -238,6 +288,8 @@ class DatasetGenerator:
                     logger.error(f"Error rendering {sample['mesh']}")
                     logger.error(e)
 
+            else:
+                logger.info(f"Sample {sample['mesh']} already rendered.")
         # Save updated schema
         with open(schema_path, 'w') as f:
             json.dump(scheme, f, indent=4,cls=NumpyEncoder)
@@ -250,6 +302,7 @@ if __name__ == "__main__":
     parser.add_argument('--meshes_dir', type=str, default=MESHES_DIR, help='Path to meshes directory')
     parser.add_argument('--textures_dir', type=str, default=TEXTURES_DIR, help='Path to textures directory')
     parser.add_argument('--backgrounds_dir', type=str, default=BACKGROUNDS_DIR, help='Path to backgrounds directory')
+    parser.add_argument('--image-size', type=int, default=512, help='Image size to render')
     parser.add_argument('-N',type=int,default=1,help='Number of samples to generate')
 
     parser.add_argument('--dataset-type', type=str, default='train', help='Dataset type')
@@ -259,48 +312,26 @@ if __name__ == "__main__":
     FOCAL_DISTANCES = (1.0, 1.5)
     RADIAL_DISTORTION_COEFFS = np.array([[0.1, 0.3], [0.1, 0.3], [0.1, 0.3]])
 
-    if args.dataset_type == 'train':
-        try:
-            dataset_generator = DatasetGenerator(
-                meshes_dir=MESHES_DIR,
-                textures_dir=TEXTURES_DIR,
-                backgrounds_dir=BACKGROUNDS_DIR,
-                focal_distances=FOCAL_DISTANCES,
-                radial_distortion_coeffs=RADIAL_DISTORTION_COEFFS,
-                train_schema_path=os.path.join(TRAIN_SCHEMA_DIR, 'train_schema.json'),
-                test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
-                train_output_dir=TRAIN_OUTPUT_DIR,
-                test_output_dir=TEST_OUTPUT_DIR,
-            )
-            dataset_generator.generate_schemes(N=args.N)
-            dataset_generator.render_samples(dataset_type=args.dataset_type)
+    try:
+        dataset_generator = DatasetGenerator(
+            meshes_dir=MESHES_DIR,
+            textures_dir=TEXTURES_DIR,
+            backgrounds_dir=BACKGROUNDS_DIR,
+            focal_distances=FOCAL_DISTANCES,
+            radial_distortion_coeffs=RADIAL_DISTORTION_COEFFS,
+            train_schema_path=os.path.join(TRAIN_SCHEMA_DIR, 'train_schema.json'),
+            test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
+            train_output_dir=TRAIN_OUTPUT_DIR,
+            test_output_dir=TEST_OUTPUT_DIR,
+            image_size=args.image_size
+        )
+        dataset_generator.generate_schemes(N=args.N)
+        dataset_generator.render_samples(dataset_type=args.dataset_type)
 
-        except Exception as e:
-            logger.error(e)
-            sys.exit(1)
-
-    elif args.dataset_type == 'test':
-        try:
-            dataset_generator = DatasetGenerator(
-                meshes_dir=MESHES_DIR,
-                textures_dir=TEXTURES_DIR,
-                backgrounds_dir=BACKGROUNDS_DIR,
-                focal_distances=FOCAL_DISTANCES,
-                radial_distortion_coeffs=RADIAL_DISTORTION_COEFFS,
-                train_schema_path=os.path.join(TRAIN_SCHEMA_DIR, 'train_schema.json'),
-                test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
-                train_output_dir=TRAIN_OUTPUT_DIR,
-                test_output_dir=TEST_OUTPUT_DIR,
-            )
-            dataset_generator.generate_schemes(N=args.N)
-            dataset_generator.render_samples(dataset_type=args.dataset_type)
-        except Exception as e:
-            logger.error(e)
-            sys.exit(1)
-            
-    else:
-        logger.error("Invalid dataset type. Use ['train'] or ['test'].")
+    except Exception as e:
+        logger.error(e)
         sys.exit(1)
+
 
 
     
