@@ -9,6 +9,7 @@ import itertools
 import shutil
 import sys
 import argparse
+import time
 
 # Import custom modules
 sys.path.append('renderer')
@@ -83,7 +84,7 @@ class DatasetGenerator:
         self.measurer = ms.MeasureBody('smpl')
 
     def generate_schemes(self, N: int,stop_after=None) -> None:
-        if True:
+        if N > 0:
             train_meshes_dir = os.path.join(self.meshes_dir, 'train')
             test_meshes_dir = os.path.join(self.meshes_dir, 'test')
             train_backgrounds_dir = os.path.join(self.backgrounds_dir, 'train')
@@ -202,6 +203,7 @@ class DatasetGenerator:
 
         return measurements,plane_data
 
+    @timer_function
     def render_samples(self, dataset_type: str) -> None:
         if dataset_type == 'train':
             schema_path = self.train_schema_path
@@ -325,8 +327,9 @@ if __name__ == "__main__":
             test_output_dir=TEST_OUTPUT_DIR,
             image_size=args.image_size
         )
-        dataset_generator.generate_schemes(N=args.N)
+        #dataset_generator.generate_schemes(N=args.N)
         dataset_generator.render_samples(dataset_type=args.dataset_type)
+
 
     except Exception as e:
         logger.error(e)
