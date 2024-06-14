@@ -8,6 +8,7 @@ from typing import List, Tuple, Dict, Any, Sequence
 import itertools
 import shutil
 import sys
+import argparse
 
 # Import custom modules
 sys.path.append('renderer')
@@ -33,8 +34,6 @@ class DatasetGenerator:
                  meshes_dir: str,
                  textures_dir: str,
                  backgrounds_dir: str,
-                 eye_position_ranges: np.ndarray,
-                 at_ranges: np.ndarray,
                  focal_distances: Tuple[float, float],
                  radial_distortion_coeffs: np.ndarray,
                  train_output_dir: str,
@@ -53,8 +52,6 @@ class DatasetGenerator:
         self.textures_dir = textures_dir
         self.backgrounds_dir = backgrounds_dir
 
-        self.eye_position_ranges = eye_position_ranges
-        self.at_ranges = at_ranges
         self.focal_distances = focal_distances
         self.radial_distortion_coeffs = radial_distortion_coeffs
         self.image_size = image_size
@@ -170,6 +167,7 @@ class DatasetGenerator:
                             at[2] + z_weight
                         ])
                         set_views.add(view)
+                        
                     scheme.append({
                         'mesh': mesh,
                         'texture': texture,
@@ -192,6 +190,7 @@ class DatasetGenerator:
 
     def measure_mesh(self):
         pass
+
     def render_samples(self, dataset_type: str) -> None:
         if dataset_type == 'train':
             schema_path = self.train_schema_path
@@ -215,7 +214,7 @@ class DatasetGenerator:
                         texture_image_path=sample['texture'],
                         smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR,'smpl_uv.obj'),
                         obj_mesh_path=sample['mesh'],
-                        output_path=os.path.join(TRAIN_OUTPUT_DIR),
+                        output_path=output_dir,
                         cam_dist=sample['eye_position'][2],  # assuming Z as the distance for simplicity
                         background_image_path=sample['background'],
                         eye_position=sample['eye_position'],
@@ -227,8 +226,7 @@ class DatasetGenerator:
                     # Save render data
                     #file_numeration = extract_numeration(Path(sample['model']).name)
 
-                    save_to_json(os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
-                                              f"{dataset_type}_{sample['file_numeration']}"),
+                    save_to_json(os.path.join(TRAIN_RENDER_ANNOTATION_DIR,f"{dataset_type}_{sample['file_numeration']}_{sample['view']}"),
                                  render_data=sample,
                                  background=Path(sample['background']).name,
                                  texture=Path(sample['texture']).name)
@@ -247,28 +245,62 @@ class DatasetGenerator:
 
 # Exemplo de uso
 if __name__ == "__main__":
-    eye_position_ranges = np.array([[1, 2], [1, 2], [2, 3.8]])
-    at_ranges = np.array([[-1, 1], [-1, 1], [-1, 1]])
-    focal_distances = (1.0, 1.5)
-    radial_distortion_coeffs = np.array([[0.1, 0.3], [0.1, 0.3], [0.1, 0.3]])
 
-    dataset_generator = DatasetGenerator(
-        meshes_dir=MESHES_DIR,
-        textures_dir=TEXTURES_DIR,
-        backgrounds_dir=BACKGROUNDS_DIR,
-        eye_position_ranges=eye_position_ranges,
-        at_ranges=at_ranges,
-        focal_distances=focal_distances,
-        radial_distortion_coeffs=radial_distortion_coeffs,
-        train_schema_path=os.path.join(TRAIN_SCHEMA_DIR, 'train_schema.json'),
-        test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
-        train_output_dir=TRAIN_OUTPUT_DIR,
-        test_output_dir=TEST_OUTPUT_DIR,
-    )
-    try:
-        dataset_generator.generate_schemes(N=1,stop_after=1)
-    except Exception as e:
-        logger.error(e)
+    parser = argparse.ArgumentParser(description='Generate dataset')
+    parser.add_argument('--meshes_dir', type=str, default=MESHES_DIR, help='Path to meshes directory')
+    parser.add_argument('--textures_dir', type=str, default=TEXTURES_DIR, help='Path to textures directory')
+    parser.add_argument('--backgrounds_dir', type=str, default=BACKGROUNDS_DIR, help='Path to backgrounds directory')
+    parser.add_argument('-N',type=int,default=1,help='Number of samples to generate')
+
+    parser.add_argument('--dataset-type', type=str, default='train', help='Dataset type')
+    args = parser.parse_args()
+
+
+    FOCAL_DISTANCES = (1.0, 1.5)
+    RADIAL_DISTORTION_COEFFS = np.array([[0.1, 0.3], [0.1, 0.3], [0.1, 0.3]])
+
+    if args.dataset_type == 'train':
+        try:
+            dataset_generator = DatasetGenerator(
+                meshes_dir=MESHES_DIR,
+                textures_dir=TEXTURES_DIR,
+                backgrounds_dir=BACKGROUNDS_DIR,
+                focal_distances=FOCAL_DISTANCES,
+                radial_distortion_coeffs=RADIAL_DISTORTION_COEFFS,
+                train_schema_path=os.path.join(TRAIN_SCHEMA_DIR, 'train_schema.json'),
+                test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
+                train_output_dir=TRAIN_OUTPUT_DIR,
+                test_output_dir=TEST_OUTPUT_DIR,
+            )
+            dataset_generator.generate_schemes(N=args.N)
+            dataset_generator.render_samples(dataset_type=args.dataset_type)
+
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
+
+    elif args.dataset_type == 'test':
+        try:
+            dataset_generator = DatasetGenerator(
+                meshes_dir=MESHES_DIR,
+                textures_dir=TEXTURES_DIR,
+                backgrounds_dir=BACKGROUNDS_DIR,
+                focal_distances=FOCAL_DISTANCES,
+                radial_distortion_coeffs=RADIAL_DISTORTION_COEFFS,
+                train_schema_path=os.path.join(TRAIN_SCHEMA_DIR, 'train_schema.json'),
+                test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
+                train_output_dir=TRAIN_OUTPUT_DIR,
+                test_output_dir=TEST_OUTPUT_DIR,
+            )
+            dataset_generator.generate_schemes(N=args.N)
+            dataset_generator.render_samples(dataset_type=args.dataset_type)
+        except Exception as e:
+            logger.error(e)
+            sys.exit(1)
+            
+    else:
+        logger.error("Invalid dataset type. Use ['train'] or ['test'].")
         sys.exit(1)
-    dataset_generator.render_samples(dataset_type='train')
-    dataset_generator.render_samples(dataset_type='test')
+
+
+    
