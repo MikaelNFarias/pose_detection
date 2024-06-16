@@ -4,6 +4,7 @@ import sys
 from dotenv import load_dotenv
 sys.path.append('..')
 from src.directories import *
+import random
 
 try:
     load_dotenv()
@@ -12,29 +13,40 @@ except Exception as e:
     print('You can create one by running the command: `cp .env.example .env`')
     sys.exit(1)
 
-def download_images(query, count,page,dest_folder, api_key):
+def download_images(count: int,
+                    dest_folder: str,
+                    pages: int = 5) -> None\
+        :
+
     os.makedirs(dest_folder, exist_ok=True)
     BASE_URL = 'https://api.unsplash.com'
     ROUTE = 'search/photos'
+    QUERIES = ['living_room',
+                  "blank_wall",
+                  "neutral_wall",
+                  "modern_furniture",
+                  "scandinavian_interior",
+                  "cozy_corner",
+                  "textured_wall"]
+
     URL = f'{BASE_URL}/{ROUTE}'
     QUERY_PARAMS = {
-        "query": "living_room",
+        "query":random.choice(QUERIES),
         "per_page": int(count),
-        "page": int(page),
         "client_id": os.getenv("UNSPLASH_API_KEY")
     }
 
     try:
-        for i in range(1,page+1):
+        for i in range(1,pages+1):
             QUERY_PARAMS['page'] = i
             response = requests.get(URL,params=QUERY_PARAMS)
             data = response.json()
-            for i, image in enumerate(data['results']):
+            for k, image in enumerate(data['results']):
                 image_url = image['urls']['regular']
                 image_response = requests.get(image_url)
-                with open(os.path.join(dest_folder, f'background_{i+1}.jpg'), 'wb') as f:
+                with open(os.path.join(dest_folder, f'background_{(k + 1) * i}.jpg'), 'wb') as f:
                     f.write(image_response.content)
-                print(f'Downloaded {i+1}/{count} images')
+                print(f'Downloaded {(k+1) * i}/{count} images')
     except Exception as e:
         print('Error downloading images:', e)
 
@@ -42,10 +54,10 @@ def download_images(query, count,page,dest_folder, api_key):
 unsplash_api_key = os.getenv("UNSPLASH_API_KEY")
 
 # Define the search query and number of images you need
-search_query = 'livingroom'
 num_images = 30 # max per hour
-page = 2
 destination_folder = os.path.join(ROOT_DIR,'downloads')
 
 # Download the images
-download_images(search_query, num_images,page, destination_folder, unsplash_api_key)
+download_images(count=30,
+                dest_folder = destination_folder,
+                pages = 5)

@@ -4,4 +4,4 @@ rm data/output/train/annotations/plane/*
 
 rm data/output/train/frontal/*
 rm data/output/train/side/*
-rm data/schemas/train/*
+: > data/schemas/train_schema.json

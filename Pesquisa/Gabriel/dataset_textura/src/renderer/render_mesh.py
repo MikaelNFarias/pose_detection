@@ -38,6 +38,7 @@ def render_mesh_textured(
         at: np.ndarray = None,
         background_image: np.ndarray | torch.Tensor = None,
         eye_position: Sequence[float] = None,
+        fov: float = 60.0,
 ) -> Any:
     batch_size = 1
 
@@ -104,7 +105,10 @@ def render_mesh_textured(
         sys.exit(1)
 
     try:
-        cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
+        cameras = FoVPerspectiveCameras(device=device,
+                                        fov=fov,
+                                        R=R,
+                                        T=T)
     except Exception as e:
         print(e)
 

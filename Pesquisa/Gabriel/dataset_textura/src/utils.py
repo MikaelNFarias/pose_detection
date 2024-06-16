@@ -215,6 +215,8 @@ class NumpyEncoder(json.JSONEncoder):
         if isinstance(obj, (float, np.float32, np.float64)):
             return format(obj, '.4f')
 
+        if isinstance(obj,(np.int16,np.int32,np.int64)):
+            return int(obj)
         if isinstance(obj, torch.Tensor):
             return obj.tolist()
         return super().default(obj)

@@ -36,7 +36,8 @@ def render(texture_image_path: str,
            sample_number: int = None,
            background_image_path: str | None = None,
            eye_position: Sequence[float] = None,
-    ) -> Dict[str,Any]:
+           fov: float = 60.0,
+    ) -> None:
 
     """
 
@@ -83,7 +84,7 @@ def render(texture_image_path: str,
     if view.lower() not in ('frontal','right','side','left','back'):
         raise ValueError(f'View {view} not recognized')
 
-    file_name: str = f"{dataset}_{file_numeration}_{view}_{N}_render.png"
+    file_name: str = f"{dataset}_{file_numeration}_{view}_{sample_number}_render.png"
 
     logger.info(f"""Rendering {file_name} image ({image_size},{image_size})
                     with texture image {texture_image_path}
