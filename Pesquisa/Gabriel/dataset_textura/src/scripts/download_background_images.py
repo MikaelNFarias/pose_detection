@@ -31,24 +31,27 @@ def download_images(count: int,
 
     URL = f'{BASE_URL}/{ROUTE}'
     QUERY_PARAMS = {
-        "query":random.choice(QUERIES),
         "per_page": int(count),
         "client_id": os.getenv("UNSPLASH_API_KEY")
     }
 
     try:
-        for i in range(1,pages+1):
-            QUERY_PARAMS['page'] = i
-            response = requests.get(URL,params=QUERY_PARAMS)
-            data = response.json()
-            for k, image in enumerate(data['results']):
+        for page in range(1, pages+1):
+            QUERY_PARAMS['page'] = page
+            QUERY_PARAMS['query'] = random.choice(QUERIES)
+            response = requests.get(URL, params=QUERY_PARAMS)
+            response.raise_for_status()
+            images = response.json()['results']
+            for image in images:
                 image_url = image['urls']['regular']
-                image_response = requests.get(image_url)
-                with open(os.path.join(dest_folder, f'background_{(k + 1) * i}.jpg'), 'wb') as f:
-                    f.write(image_response.content)
-                print(f'Downloaded {(k+1) * i}/{count} images')
+                image_id = image['id']
+                image_path = os.path.join(dest_folder, f'{image_id}.jpg')
+                with open(image_path, 'wb') as file:
+                    image_response = requests.get(image_url)
+                    file.write(image_response.content)
+                    print(f'Downloaded image {image_id} to {image_path}')
     except Exception as e:
-        print('Error downloading images:', e)
+        print(f'Error downloading images: {e}')
 
 # Set your Unsplash API key here
 unsplash_api_key = os.getenv("UNSPLASH_API_KEY")
