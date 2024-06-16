@@ -22,12 +22,12 @@ from directories import *
 
 from pytorch3d.io import load_obj
 
-# try:
-#     logger = setup_logger(__name__)
-# except Exception as e:
-#     print(e)
-#     print("[ERRO]: Logger não pode ser iniciado")
-#     sys.exit(1)
+try:
+    logger = setup_logger(__name__)
+except Exception as e:
+    print(e)
+    print("[ERRO]: Logger não pode ser iniciado")
+    sys.exit(1)
 
 
 class DatasetGenerator:
@@ -48,7 +48,7 @@ class DatasetGenerator:
                  cam_dist_range: np.ndarray = np.linspace(2, 3.8, 15),
                  x_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
                  y_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
-                 fov_range: np.ndarray = np.array([50,60,70,80]),):
+                 fov_range: np.ndarray = np.linspace(40,80,20),):
 
         self.meshes_dir = os.path.join(meshes_dir, dataset)
         self.textures_dir = textures_dir
@@ -163,7 +163,7 @@ class DatasetGenerator:
                 set_views = set()
                 for idx,view in enumerate(self.VIEWS):
                     counter += 1
-                    #logger.info(f"Generating render scheme for {mesh} with view = {view}.{counter} / {N * len(self.VIEWS)}")
+                    logger.info(f"Generating render scheme for {mesh} with view = {view}.{counter} / {N * len(self.VIEWS)}")
                     if view not in set_views:
                         if view == 'side':
                             view = np.random.choice(['left', 'right'])
@@ -230,8 +230,6 @@ class DatasetGenerator:
 
         for sample in scheme:
             if not sample['saved']:
-                print(sample)
-
                 try:
                     rd.render(
                         texture_image_path=sample['texture'],
@@ -264,7 +262,7 @@ class DatasetGenerator:
                                 background=Path(sample['background']).name,
                                 texture=Path(sample['texture']).name
                             )
-                            #logger.info(f"Train render Annotation saved to {TRAIN_RENDER_ANNOTATION_DIR}")
+                            logger.info(f"Train render Annotation saved to {TRAIN_RENDER_ANNOTATION_DIR}")
 
                             save_to_json(
                                 os.path.join(TRAIN_MEASUREMENTS_ANNOTATION_DIR,
@@ -273,7 +271,7 @@ class DatasetGenerator:
                                 file_numeration=sample['file_numeration']
                             )
 
-                            #logger.info(f"Train measurements Annotation saved to {TRAIN_MEASUREMENTS_ANNOTATION_DIR}")
+                            logger.info(f"Train measurements Annotation saved to {TRAIN_MEASUREMENTS_ANNOTATION_DIR}")
 
                             save_to_json(
                                 os.path.join(TRAIN_PLANE_ANNOTATION_DIR,
@@ -283,7 +281,7 @@ class DatasetGenerator:
                             )
                             #
                             #
-                            #logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
+                            logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
                         case 'test':
                             render_data = sample.copy()
                             render_data['up'] = (0,0,1)
@@ -315,12 +313,12 @@ class DatasetGenerator:
                     sample['saved'] = True
 
                 except Exception as e:
-                    #logger.error(f"Error rendering {sample['mesh']}")
-                    #logger.error(e)
-                    print(e)
+                    logger.error(f"Error rendering {sample['mesh']}")
+                    logger.error(e)
+
 
             else:
-                #logger.info(f"Sample {sample['mesh']} already rendered.")
+                logger.info(f"Sample {sample['mesh']} already rendered.")
                 pass
         # Save updated schema
         with open(schema_path, 'w') as f:
@@ -361,5 +359,5 @@ if __name__ == "__main__":
 
 
     except Exception as e:
-        #logger.error(e)
+        logger.error(e)
         sys.exit(1)

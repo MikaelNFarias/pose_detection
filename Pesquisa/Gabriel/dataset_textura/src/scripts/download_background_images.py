@@ -27,7 +27,7 @@ def download_images(count: int,
                   "modern_furniture",
                   "scandinavian_interior",
                   "cozy_corner",
-                  "textured_wall"]
+                  "textured_wall"] ## <- pode ser otimizado para encontrar resultados melhores
 
     URL = f'{BASE_URL}/{ROUTE}'
     QUERY_PARAMS = {

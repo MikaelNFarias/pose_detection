@@ -1,6 +1,7 @@
 import os
 import shutil
 import random
+import argparse
 import sys
 sys.path.append('..')
 from src.directories import *
@@ -38,10 +39,20 @@ def train_test_split_images(source_folder, train_folder, test_folder, split_rati
     print(f"Testing images: {len(test_files)}")
 
 # Define your source folder and the destination folders for train and test sets
-source_folder = TEXTURES_DIR
-train_folder = os.path.join(TEXTURES_DIR, 'train')
-test_folder = os.path.join(TEXTURES_DIR, 'test')
+source_folder = DOWNLOADS_DIR
+train_folder = os.path.join(BACKGROUNDS_DIR,'train')
+test_folder = os.path.join(BACKGROUNDS_DIR,'test')
 print(source_folder)
 
-# Perform the train/test split
-train_test_split_images(source_folder, train_folder, test_folder, split_ratio=0.8)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Split images into train and test sets')
+    parser.add_argument('--source_folder', type=str, help='Path to the source folder containing images')
+    parser.add_argument('--train_folder', type=str, help='Path to the folder to save training images')
+    parser.add_argument('--test_folder', type=str, help='Path to the folder to save testing images')
+    parser.add_argument('--split_ratio', type=float, default=0.8, help='Ratio to split the images (default: 0.8)')
+    args = parser.parse_args()
+
+    train_test_split_images(source_folder=source_folder,
+                            train_folder=train_folder,
+                            test_folder=test_folder,
+                            split_ratio=0.8)
