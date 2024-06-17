@@ -87,14 +87,7 @@ def render_mesh_textured(
     except Exception as e:
         print(eye_position)
         sys.exit(0)
-    # TODO definir propriedades luminosas no objeto e na fonte de luz
-    # Analisar normais do vertices [ não tem normais]
 
-    # Initialize a camera.
-    # With world coordinates +Y up, +X left and +Z in, the front of the mesh is facing the +Z direction.
-    # So we move the camera by mesh_rotation in the azimuth direction.
-
-    #R,T = look_at_view_transform(at,
     try:
         if True:
             R, T = look_at_view_transform(eye=[eye_position],
@@ -107,19 +100,13 @@ def render_mesh_textured(
     try:
         cameras = FoVPerspectiveCameras(device=device,
                                         fov=fov,
+                                        degrees=True,
                                         R=R,
                                         T=T)
     except Exception as e:
         print(e)
 
-    #cameras = OrthographicCameras(device=device, T=T, R=R)
 
-    # Define the settings for rasterization and shading. Here we set the output image to be of size
-    # image_size_inximage_size_in. As we are rendering images for visualization purposes only we
-    # will set faces_per_pixel=1 and blur_radius=0.0. We also set bin_size and max_faces_per_bin to
-    # None which ensure that the faster coarse-to-fine rasterization method is used. Refer to
-    # rasterize_meshes.py for explanations of these parameters. Refer to docs/notes/renderer.md for an
-    # explanation of the difference between naive and coarse-to-fine rasterization.
 
     if background is None:
         background_color = (1.0, 1.0, 1.0)

@@ -17,7 +17,14 @@ sys.path.append('measurer')
 import renderer.render as rd
 import measurer.measure as ms
 from measurer.measurement_definitions import STANDARD_LABELS
-from utils import *
+from utils import (
+    setup_logger,
+    format_floats,
+    save_to_json,
+    extract_numeration,
+    NumpyEncoder,
+    timer_function
+)
 from directories import *
 
 from pytorch3d.io import load_obj
@@ -84,6 +91,8 @@ class DatasetGenerator:
         # self.aux = None
 
         self.measurer = ms.MeasureBody('smpl')
+
+        self.json_encoder = NumpyEncoder
 
     def generate_schemes(self, N: int, stop_after=None) -> None:
         if N > 0:
@@ -161,7 +170,7 @@ class DatasetGenerator:
                 radial_distortion = [random.uniform(*self.radial_distortion_coeffs[i]) for i in range(3)]
 
                 set_views = set()
-                for idx,view in enumerate(self.VIEWS):
+                for idx_view,view in enumerate(self.VIEWS):
                     counter += 1
                     logger.info(f"Generating render scheme for {mesh} with view = {view}.{counter} / {N * len(self.VIEWS)}")
                     if view not in set_views:
@@ -236,7 +245,7 @@ class DatasetGenerator:
                         smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR, 'smpl_uv.obj'),
                         obj_mesh_path=sample['mesh'],
                         output_path=output_dir,
-                        cam_dist=sample['cam_dist'],  # assuming Z as the distance for simplicity
+                        cam_dist=sample['cam_dist'],  
                         background_image_path=sample['background'],
                         eye_position=sample['eye_position'],
                         image_size=sample['image_size'],
@@ -354,7 +363,9 @@ if __name__ == "__main__":
             image_size=args.image_size
         )
         #dataset_generator.generate_schemes(N=args.N)
-        dataset_generator.generate_schemes(N=args.sample_number)
+
+       
+        dataset_generator.generate_schemes(args.sample_number)
         dataset_generator.render_samples(dataset_type=args.dataset_type)
 
 

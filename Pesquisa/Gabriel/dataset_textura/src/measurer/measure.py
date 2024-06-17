@@ -210,6 +210,9 @@ class Measurer():
 
         return self._get_dist(slice_segments_hull), slice_segments_hull, plane_origin, plane_normal # perimetro do fecho convexo,
 
+
+    def get_joints(self):
+        pass
     def height_normalize_measurements(self, new_height: float):
         '''
         Scale all measurements so that the height measurement gets

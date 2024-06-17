@@ -6,7 +6,6 @@ SMPL_LANDMARK_INDICES = {"HEAD_TOP": 412,
                     "RIGHT_HEEL": 6858,
                     "LEFT_NIPPLE": 3042,
                     "RIGHT_NIPPLE": 6489,
-
                     "SHOULDER_TOP": 3068,
                     "INSEAM_POINT": 3149,
                     "BELLY_BUTTON": 3501,

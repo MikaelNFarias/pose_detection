@@ -105,6 +105,7 @@ def render(texture_image_path: str,
             output_filename=file_name,
             at=at,
             background=background_image,
-            eye_position=eye_position
+            eye_position=eye_position,
+            fov=fov,
         )
 
