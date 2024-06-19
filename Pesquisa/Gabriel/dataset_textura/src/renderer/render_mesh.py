@@ -125,23 +125,26 @@ def render_mesh_textured(
     rgbArray[..., 1] = (G_channel * 255).astype(int)
     rgbArray[..., 2] = (B_channel * 255).astype(int)
     img = Image.fromarray(rgbArray)
+    projections = {}
 
     if landmarks_idx is not None:
+        for name,idx in landmarks_idx.items():
+            if name == "HEELS":
+                continue
+            point = verts[idx]
+            x_proj, y_proj = project_point(point, (height, width), device, cameras)
+            projections[name] = [x_proj, y_proj]
         if draw:
-            draw = ImageDraw.Draw(img)
-            try:
-                for name, idx in landmarks_idx.items():
-                    point = verts[idx]
-                    x_proj, y_proj = project_point(point, (height, width), device, cameras)
-                    draw.ellipse((x_proj - 2, y_proj - 2, x_proj + 2, y_proj + 2), fill='red')
-                    draw.text((x_proj + 5, y_proj), name, fill='red')
-            except Exception as e:
-                print(e)
+            draw_image = ImageDraw.Draw(img)
+            for proj,values in projections.items():
+                draw_image.ellipse((values[0] - 1, values[1] - 1, values[0] + 1, values[1] + 1),fill='red')
+                draw_image.text((values[0] + 5, values[1]), proj, fill='blue')
+
 
     if output_filename is not None:
         print("Saving ", os.path.join(output_path, output_filename), "\n")
         img.save(os.path.join(output_path, output_filename))
-        return eye_position, at
+        return projections
     else:
         return img
 
@@ -151,21 +154,14 @@ def project_point(point: torch.Tensor,
                   device: torch.device,
                   cameras: pytorch3d.renderer.cameras.FoVPerspectiveCameras):
     point = point[None, None, :].to(device)  # [1, 1, 3]
-
-    # Transform the point using the camera
-    print(f"point is  {point}")
     transformed_point = cameras.transform_points_screen(point,image_size=image_size)
-    print(f"Transformed point: {transformed_point}")  # Debugging output
-
-    # Convert the point from world space to NDC space
     test_points = transformed_point.squeeze()
-    print(test_points)
 
     # NDC to screen coordinates
     x_proj = (test_points[..., 0])
     y_proj = (test_points[..., 1])
 
-    print(f"Screen coordinates: ({x_proj}, {y_proj})")  # Debugging output
+    #print(f"Screen coordinates: ({x_proj}, {y_proj})")  # Debugging output
 
     return x_proj.item(), y_proj.item()
 

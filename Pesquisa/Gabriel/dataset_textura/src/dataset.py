@@ -241,7 +241,7 @@ class DatasetGenerator:
         for sample in scheme:
             if not sample['saved']:
                 try:
-                    rd.render(
+                    proj = rd.render(
                         texture_image_path=sample['texture'],
                         smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR, 'smpl_uv.obj'),
                         obj_mesh_path=sample['mesh'],
@@ -257,13 +257,14 @@ class DatasetGenerator:
                         draw=self.draw
                     )
                     measurements, plane_info = self._measure_mesh(sample['mesh'])
-                    print(measurements)
+                    ##print(measurements)
 
                     # Save annotation
                     match dataset_type:
                         case 'train':
                             render_data = sample.copy()
                             render_data['up'] = (0, 0, 1)
+                            render_data['projections'] = proj
                             del render_data['saved']
                             save_to_json(
                                 os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
