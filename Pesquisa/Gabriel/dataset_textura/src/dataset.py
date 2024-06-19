@@ -55,7 +55,8 @@ class DatasetGenerator:
                  cam_dist_range: np.ndarray = np.linspace(2, 3.8, 15),
                  x_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
                  y_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
-                 fov_range: np.ndarray = np.linspace(40,80,20),):
+                 fov_range: np.ndarray = np.linspace(35, 50, 20),
+                 draw=False):
 
         self.meshes_dir = os.path.join(meshes_dir, dataset)
         self.textures_dir = textures_dir
@@ -93,6 +94,7 @@ class DatasetGenerator:
         self.measurer = ms.MeasureBody('smpl')
 
         self.json_encoder = NumpyEncoder
+        self.draw = draw
 
     def generate_schemes(self, N: int, stop_after=None) -> None:
         if N > 0:
@@ -106,9 +108,8 @@ class DatasetGenerator:
             train_meshes = sorted(glob.glob(os.path.join(train_meshes_dir, '*.obj')))
             test_meshes = sorted(glob.glob(os.path.join(test_meshes_dir, '*.obj')))
             train_backgrounds = sorted(glob.glob(os.path.join(train_backgrounds_dir, '*.png')) + \
-                                glob.glob(os.path.join(train_backgrounds_dir, '*.jpg')) + \
-                                glob.glob(os.path.join(train_backgrounds_dir, '*.jpeg')))
-
+                                       glob.glob(os.path.join(train_backgrounds_dir, '*.jpg')) + \
+                                       glob.glob(os.path.join(train_backgrounds_dir, '*.jpeg')))
 
             test_backgrounds = sorted(glob.glob(os.path.join(test_backgrounds_dir, '*.png')) + glob.glob(
                 os.path.join(test_backgrounds_dir, "*.jpg")) + glob.glob(os.path.join(test_backgrounds_dir, "*.jpeg")))
@@ -127,7 +128,7 @@ class DatasetGenerator:
                                                         backgrounds=train_backgrounds,
                                                         N=N,
                                                         stop_after=stop_after)
-            
+
             test_scheme = self._generate_render_scheme(meshes=test_meshes,
                                                        textures=test_textures,
                                                        backgrounds=test_backgrounds,
@@ -170,9 +171,10 @@ class DatasetGenerator:
                 radial_distortion = [random.uniform(*self.radial_distortion_coeffs[i]) for i in range(3)]
 
                 set_views = set()
-                for idx_view,view in enumerate(self.VIEWS):
+                for idx_view, view in enumerate(self.VIEWS):
                     counter += 1
-                    logger.info(f"Generating render scheme for {mesh} with view = {view}.{counter} / {N * len(self.VIEWS)}")
+                    logger.info(
+                        f"Generating render scheme for {mesh} with view = {view}.{counter} / {N * len(self.VIEWS)}")
                     if view not in set_views:
                         if view == 'side':
                             view = np.random.choice(['left', 'right'])
@@ -196,11 +198,10 @@ class DatasetGenerator:
                         'fov': fov,
                         'radial_distortion': radial_distortion,
                         'file_numeration': file_numeration,
-                        'cam_dist': float(format(cam_dist,".4f")),
+                        'cam_dist': float(format(cam_dist, ".4f")),
                         'saved': False,
                         'N': i + 1
                     })
-
 
         return scheme
 
@@ -245,7 +246,6 @@ class DatasetGenerator:
                         smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR, 'smpl_uv.obj'),
                         obj_mesh_path=sample['mesh'],
                         output_path=output_dir,
-                        cam_dist=sample['cam_dist'],  
                         background_image_path=sample['background'],
                         eye_position=sample['eye_position'],
                         image_size=sample['image_size'],
@@ -253,7 +253,8 @@ class DatasetGenerator:
                         view=sample['view'],
                         dataset=dataset_type,
                         sample_number=sample['N'],
-                        fov=sample['fov']
+                        fov=sample['fov'],
+                        draw=self.draw
                     )
                     measurements, plane_info = self._measure_mesh(sample['mesh'])
                     print(measurements)
@@ -262,7 +263,7 @@ class DatasetGenerator:
                     match dataset_type:
                         case 'train':
                             render_data = sample.copy()
-                            render_data['up'] = (0,0,1)
+                            render_data['up'] = (0, 0, 1)
                             del render_data['saved']
                             save_to_json(
                                 os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
@@ -293,7 +294,7 @@ class DatasetGenerator:
                             logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
                         case 'test':
                             render_data = sample.copy()
-                            render_data['up'] = (0,0,1)
+                            render_data['up'] = (0, 0, 1)
                             del render_data['saved']
                             save_to_json(
                                 os.path.join(TEST_RENDER_ANNOTATION_DIR,
@@ -342,8 +343,10 @@ if __name__ == "__main__":
     parser.add_argument('--textures_dir', type=str, default=TEXTURES_DIR, help='Path to textures directory')
     parser.add_argument('--backgrounds_dir', type=str, default=BACKGROUNDS_DIR, help='Path to backgrounds directory')
     parser.add_argument('--image-size', type=int, default=512, help='Image size to render')
-    parser.add_argument('--sample-number', type=int, default=0, help='Number of samples to generate per mesh, each sample will generate N * len(Views)')
+    parser.add_argument('--sample-number', type=int, default=0,
+                        help='Number of samples to generate per mesh, each sample will generate N * len(Views)')
     parser.add_argument('--dataset-type', type=str, default='train', help='Dataset type')
+    parser.add_argument("--draw", type=bool, default=False, help="Draw images")
     args = parser.parse_args()
 
     FOCAL_DISTANCES = (1.0, 1.5)
@@ -360,15 +363,17 @@ if __name__ == "__main__":
             test_schema_path=os.path.join(TEST_SCHEMA_DIR, 'test_schema.json'),
             train_output_dir=TRAIN_OUTPUT_DIR,
             test_output_dir=TEST_OUTPUT_DIR,
-            image_size=args.image_size
+            image_size=args.image_size,
+            draw=args.draw
         )
         #dataset_generator.generate_schemes(N=args.N)
 
-       
-        dataset_generator.generate_schemes(args.sample_number)
+        dataset_generator.generate_schemes(N=args.sample_number)
         dataset_generator.render_samples(dataset_type=args.dataset_type)
 
 
     except Exception as e:
         logger.error(e)
         sys.exit(1)
+
+#comando de teste python3 dataset.py --sample-number 1 --image-size 256 --draw true

@@ -21,6 +21,7 @@ from typing import List, Any, Optional, Sequence, Union, Dict,Tuple
 sys.path.append('../')
 
 from src.utils import *
+from src.measurer.landmark_definitions import SMPL_LANDMARK_INDICES
 
 
 def render(texture_image_path: str,
@@ -32,11 +33,12 @@ def render(texture_image_path: str,
            debug: bool = False,
            dataset: str = 'skeletex',
            image_size: int = 128,
-           cam_dist: float = 1.0,
            sample_number: int = None,
            background_image_path: str | None = None,
            eye_position: Sequence[float] = None,
            fov: float = 60.0,
+           landmarks = SMPL_LANDMARK_INDICES,
+           draw: bool = False,
     ) -> None:
 
     """
@@ -100,12 +102,14 @@ def render(texture_image_path: str,
             verts_uvs=smpl_verts_uvs,
             faces_uvs=smpl_faces_uvs,
             faces_vertices=obj_facets.verts_idx,
-            image_size=image_size,  # image resolution  # camera position
+            image_size=(image_size,image_size),  # image resolution  # camera position
             output_path=os.path.join(output_path,view),
             output_filename=file_name,
             at=at,
             background=background_image,
             eye_position=eye_position,
             fov=fov,
+            landmarks_idx=landmarks,
+            draw=draw
         )
 
