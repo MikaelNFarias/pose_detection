@@ -22,6 +22,35 @@ from pytorch3d.renderer import (
 )
 
 
+
+SMPL_IND2JOINT = {
+    0: 'pelvis',
+    1: 'left_hip',
+    2: 'right_hip',
+    3: 'spine1',
+    4: 'left_knee',
+    5: 'right_knee',
+    6: 'spine2',
+    7: 'left_ankle',
+    8: 'right_ankle',
+    9: 'spine3',
+    10: 'left_foot',
+    11: 'right_foot',
+    12: 'neck',
+    13: 'left_collar',
+    14: 'right_collar',
+    15: 'head',
+    16: 'left_shoulder',
+    17: 'right_shoulder',
+    18: 'left_elbow',
+    19: 'right_elbow',
+    20: 'left_wrist',
+    21: 'right_wrist',
+    22: 'left_hand',
+    23: 'right_hand'
+}
+
+
 def render_mesh_textured(
         verts: np.ndarray | torch.Tensor,
         textures: np.ndarray | torch.Tensor,
@@ -38,6 +67,7 @@ def render_mesh_textured(
         eye_position: Sequence[float] = None,
         fov: float = 60.0,
         landmarks_idx=None,
+        joints=None,
         draw: bool = False,
 ) -> Any:
     batch_size = 1
@@ -55,12 +85,17 @@ def render_mesh_textured(
     if up is None:
         up = [0, 0, 1]
 
+    if joints is not None:
+        try:
+            joints = torch.tensor(joints)
+        except:
+            joints = joints
+
     if not isinstance(image_size, tuple) or len(image_size) != 2:
         raise ValueError("image_size must be a tuple of (height, width)")
 
     height, width = image_size
 
-    # default camera position
 
 
     tex = torch.from_numpy(textures / 255.0)[None].to(device)
@@ -125,20 +160,41 @@ def render_mesh_textured(
     rgbArray[..., 1] = (G_channel * 255).astype(int)
     rgbArray[..., 2] = (B_channel * 255).astype(int)
     img = Image.fromarray(rgbArray)
+    projections_landmarks = {}
+    projections_joints = {}
     projections = {}
-
     if landmarks_idx is not None:
         for name,idx in landmarks_idx.items():
             if name == "HEELS":
                 continue
             point = verts[idx]
+            print("POINTS",point)
             x_proj, y_proj = project_point(point, (height, width), device, cameras)
-            projections[name] = [x_proj, y_proj]
+            projections_landmarks[name] = [x_proj, y_proj]
+
+        projections["landmarks"] = projections_landmarks
         if draw:
             draw_image = ImageDraw.Draw(img)
-            for proj,values in projections.items():
+            for proj,values in projections_landmarks.items():
                 draw_image.ellipse((values[0] - 1, values[1] - 1, values[0] + 1, values[1] + 1),fill='red')
+                draw_image.text((values[0] + 5, values[1]), proj, fill='red')
+
+    if joints is not None:
+        for idx, name in SMPL_IND2JOINT.items():
+            joint_point = joints[idx]
+            print(f"Nome: {name},{joint_point}")
+            x_proj,y_proj = project_point(joint_point, (height, width), device, cameras)
+            projections_joints[name] = [x_proj, y_proj]
+
+        projections["joints"] = projections_joints
+
+        if draw:
+            draw_image = ImageDraw.Draw(img)
+            for proj, values in projections_joints.items():
+                draw_image.ellipse((values[0] - 2, values[1] - 2, values[0] + 2, values[1] + 2), fill='blue')
                 draw_image.text((values[0] + 5, values[1]), proj, fill='blue')
+
+
 
 
     if output_filename is not None:

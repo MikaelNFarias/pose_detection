@@ -3,7 +3,7 @@ import numpy as np
 import smplx as SMPL
 import logging
 import re
-from typing import List,Any,Optional,Dict
+from typing import List, Any, Optional, Dict
 from time import time
 import json
 import sys
@@ -14,10 +14,10 @@ import torch
 import argparse
 
 
-
 def load_texture_image(texture_image_path):
     with Image.open(texture_image_path) as texture_image:
         return np.asarray(texture_image.convert("RGB")).astype(np.float32)
+
 
 def initialize_smpl(smpl_model_path, gender='male', model_type='smpl'):
     return SMPL.create(
@@ -34,27 +34,27 @@ def extract_numeration(texture_image_path: str) -> Optional[str]:
         return number_part
     return None
 
+
 def setup_logger(context):
     # Create a logger
     logger = logging.getLogger(context)
     # Set the level based on the debug parameter
     logger.setLevel(logging.INFO)
-    
+
     # Create a console handler
     ch = logging.StreamHandler()
     # Set the level for the handler
     ch.setLevel(logging.INFO)
-    
+
     # Create a formatter and set it for the handler
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
-    
+
     # Add the handler to the logger
     if not logger.handlers:
         logger.addHandler(ch)
-    
-    return logger
 
+    return logger
 
 
 def load_face_segmentation(path: str):
@@ -199,14 +199,13 @@ def point_segmentation_to_face_segmentation(
     return face_segmentation_dict
 
 
-
 def convert_numpy_to_list(dictionary: dict):
-
     for key, value in dictionary.items():
-        if isinstance(value,np.ndarray):
+        if isinstance(value, np.ndarray):
             dictionary[key] = value.tolist()
 
     return dictionary
+
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -215,39 +214,42 @@ class NumpyEncoder(json.JSONEncoder):
         if isinstance(obj, (float, np.float32, np.float64)):
             return format(obj, '.4f')
 
-        if isinstance(obj,(np.int16,np.int32,np.int64)):
+        if isinstance(obj, (np.int16, np.int32, np.int64)):
             return int(obj)
         if isinstance(obj, torch.Tensor):
             return obj.tolist()
+        if isinstance(obj, str):
+            return obj.lower()
         return super().default(obj)
 
-    
+
 def timer_function(func):
     def wrapper(*args, **kwargs):
         t1 = time()
         result = func(*args, **kwargs)
         t2 = time()
-        print(f"Function {func.__name__!r} executed in {(t2-t1):.4f}s")
-        return  result
+        print(f"Function {func.__name__!r} executed in {(t2 - t1):.4f}s")
+        return result
+
     return wrapper
 
-def save_measurements_to_json(measurements: Dict[Any,Any],
+
+def save_measurements_to_json(measurements: Dict[Any, Any],
                               json_file_path: str,
                               texture: str,
                               background: str,
                               unit='cm',
-                              render_data= None,
-                              plane_data = None,
-                              camera_data = None,
+                              render_data=None,
+                              plane_data=None,
+                              camera_data=None,
                               **kwargs) -> None:
-
     file_numeration = render_data['file_numeration']
-    json_file_path = os.path.join(json_file_path,f"{render_data['dataset']}_{file_numeration}_annotation.json")
+    json_file_path = os.path.join(json_file_path, f"{render_data['dataset']}_{file_numeration}_annotation.json")
     data_json = {
         "textura": texture,
         "background": background,
         "medidas_antropometricas": measurements,
-        'unidade':unit,
+        'unidade': unit,
 
     }
     if render_data is not None:
@@ -260,17 +262,17 @@ def save_measurements_to_json(measurements: Dict[Any,Any],
 
     data_json = format_floats(data_json)
 
-    with open(json_file_path,'w+') as f:
-        json.dump(data_json,f, indent=4,cls=NumpyEncoder)
+    with open(json_file_path, 'w+') as f:
+        json.dump(data_json, f, indent=4, cls=NumpyEncoder)
 
     print(f"Arquivo JSON {json_file_path} salvo com sucesso")
 
-def save_to_json(json_file_path,render_data = None,
+
+def save_to_json(json_file_path, render_data=None,
                  plane_data=None,
                  measurement_data=None,
                  cam_data=None,
                  **kwargs) -> None:
-    
     json_file_path = f"{json_file_path}.json"
     data_json = {}
     ## add kwargs to data_json
@@ -284,9 +286,10 @@ def save_to_json(json_file_path,render_data = None,
         data_json.update(plane_data)
     if cam_data is not None:
         data_json.update(cam_data)
-    
-    with open(json_file_path,'w+') as f:
-        json.dump(data_json,f, indent=4,cls=NumpyEncoder)
+
+    with open(json_file_path, 'w+') as f:
+        json.dump(data_json, f, indent=4, cls=NumpyEncoder)
+
 
 def format_floats(obj, precision=4):
     if isinstance(obj, float):
@@ -299,6 +302,6 @@ def format_floats(obj, precision=4):
         return {k: format_floats(v) for k, v in obj.items()}
     elif isinstance(obj, tuple):
         return tuple(format_floats(e) for e in obj)
-    elif isinstance(obj,torch.Tensor):
+    elif isinstance(obj, torch.Tensor):
         return torch.tensor([format_floats(e.item()) for e in obj.flatten()]).reshape(obj.shape)
     return obj

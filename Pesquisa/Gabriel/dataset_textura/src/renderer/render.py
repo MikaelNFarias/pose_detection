@@ -39,6 +39,7 @@ def render(texture_image_path: str,
            fov: float = 60.0,
            landmarks = SMPL_LANDMARK_INDICES,
            draw: bool = False,
+           joints = None
     ) -> Any:
 
     """
@@ -96,6 +97,7 @@ def render(texture_image_path: str,
                     and camera_oriented to {at_aux}
                     and orientation {view} \n""")
 
+
     proj = render_mesh_textured(
             verts=obj_verts,
             textures=texture_image,
@@ -110,6 +112,7 @@ def render(texture_image_path: str,
             eye_position=eye_position,
             fov=fov,
             landmarks_idx=landmarks,
+            joints=joints,
             draw=draw
         )
 

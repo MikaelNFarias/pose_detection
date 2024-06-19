@@ -15,6 +15,7 @@ from joint_definitions import *
 
 sys.path.append('../')
 from src.utils import *
+
 # import pytorch3d  load obj
 
 from pytorch3d.io import load_obj
@@ -212,6 +213,9 @@ class Measurer():
 
 
     def get_joints(self):
+        pass
+
+    def annotate(self):
         pass
     def height_normalize_measurements(self, new_height: float):
         '''

@@ -207,7 +207,8 @@ class DatasetGenerator:
 
     @staticmethod
     def _load_mesh(mesh_path):
-        verts, faces, aux = load_obj(mesh_path)
+        verts,faces, aux = load_obj(mesh_path)
+
         return verts, faces, aux
 
     def _measure_mesh(self, mesh):
@@ -219,7 +220,7 @@ class DatasetGenerator:
         measurements = self.measurer.measurements
         plane_data = self.measurer.planes_info
 
-        return measurements, plane_data
+        return measurements, plane_data, self.measurer.joints
 
     @timer_function
     def render_samples(self, dataset_type: str) -> None:
@@ -241,6 +242,7 @@ class DatasetGenerator:
         for sample in scheme:
             if not sample['saved']:
                 try:
+                    measurements, plane_info, joints = self._measure_mesh(sample['mesh'])
                     proj = rd.render(
                         texture_image_path=sample['texture'],
                         smpl_uv_map_path=os.path.join(SAMPLE_DATA_DIR, 'smpl_uv.obj'),
@@ -254,10 +256,10 @@ class DatasetGenerator:
                         dataset=dataset_type,
                         sample_number=sample['N'],
                         fov=sample['fov'],
-                        draw=self.draw
+                        draw=self.draw,
+                        joints=joints
                     )
-                    measurements, plane_info = self._measure_mesh(sample['mesh'])
-                    ##print(measurements)
+
 
                     # Save annotation
                     match dataset_type:
