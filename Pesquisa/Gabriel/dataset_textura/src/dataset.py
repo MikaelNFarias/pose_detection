@@ -270,7 +270,7 @@ class DatasetGenerator:
                             del render_data['saved']
                             save_to_json(
                                 os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
-                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_{sample['cam_dist']}"),
+                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_N_{sample['N']}"),
                                 render_data=render_data,
                                 background=Path(sample['background']).name,
                                 texture=Path(sample['texture']).name
@@ -292,8 +292,7 @@ class DatasetGenerator:
                                 plane_data=format_floats(plane_info),
                                 file_numeration=sample['file_numeration']
                             )
-                            #
-                            #
+
                             logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
                         case 'test':
                             render_data = sample.copy()
@@ -301,7 +300,7 @@ class DatasetGenerator:
                             del render_data['saved']
                             save_to_json(
                                 os.path.join(TEST_RENDER_ANNOTATION_DIR,
-                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}"),
+                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_N_{sample['N']}"),
                                 render_data=sample,
                                 background=Path(sample['background']).name,
                                 texture=Path(sample['texture']).name
@@ -322,8 +321,12 @@ class DatasetGenerator:
                             )
                         case _:
                             raise ValueError("Invalid dataset type. Use ['train'] or ['test'].")
-                    # Mark as saved
+
                     sample['saved'] = True
+
+                    with open(schema_path, 'w') as f:
+                        json.dump(scheme, f, indent=4, cls=NumpyEncoder)
+                        print(f"Renderização do  {sample['mesh']} concluida e salva no {schema_path}")
 
                 except Exception as e:
                     logger.error(f"Error rendering {sample['mesh']}")
@@ -334,8 +337,7 @@ class DatasetGenerator:
                 logger.info(f"Sample {sample['mesh']} already rendered.")
                 pass
         # Save updated schema
-        with open(schema_path, 'w') as f:
-            json.dump(scheme, f, indent=4, cls=NumpyEncoder)
+
 
 
 # Exemplo de uso
