@@ -56,7 +56,8 @@ class DatasetGenerator:
                  x_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
                  y_weight_range: np.ndarray = np.linspace(.8, 1.5, 5),
                  fov_range: np.ndarray = np.linspace(35, 50, 20),
-                 draw=False):
+                 draw_landmarks: bool = False,
+                 draw_joints: bool = False):
 
         self.meshes_dir = os.path.join(meshes_dir, dataset)
         self.textures_dir = textures_dir
@@ -94,7 +95,8 @@ class DatasetGenerator:
         self.measurer = ms.MeasureBody('smpl')
 
         self.json_encoder = NumpyEncoder
-        self.draw = draw
+        self.draw_landmarks = draw_landmarks
+        self.draw_joints = draw_joints
 
     def generate_schemes(self, N: int, stop_after=None) -> None:
         if N > 0:
@@ -256,7 +258,8 @@ class DatasetGenerator:
                         dataset=dataset_type,
                         sample_number=sample['N'],
                         fov=sample['fov'],
-                        draw=self.draw,
+                        draw_landmarks=self.draw_landmarks,
+                        draw_joints=self.draw_joints,
                         joints=joints
                     )
 
@@ -351,7 +354,8 @@ if __name__ == "__main__":
     parser.add_argument('--sample-number', type=int, default=0,
                         help='Number of samples to generate per mesh, each sample will generate N * len(Views)')
     parser.add_argument('--dataset-type', type=str, default='train', help='Dataset type')
-    parser.add_argument("--draw", type=bool, default=False, help="Draw images")
+    parser.add_argument("--draw-joints", type=bool, default=False, help="Draw images")
+    parser.add_argument("--draw-landmarks", type=bool, default=False, help="Draw images")
     args = parser.parse_args()
 
     FOCAL_DISTANCES = (1.0, 1.5)
@@ -369,7 +373,8 @@ if __name__ == "__main__":
             train_output_dir=TRAIN_OUTPUT_DIR,
             test_output_dir=TEST_OUTPUT_DIR,
             image_size=args.image_size,
-            draw=args.draw
+            draw_landmarks=args.draw_landmarks,
+            draw_joints = args.draw_joints
         )
         #dataset_generator.generate_schemes(N=args.N)
 
@@ -380,5 +385,5 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(e)
         sys.exit(1)
-
-#comando de teste python3 dataset.py --sample-number 1 --image-size 256 --draw true
+#cd src/
+#comando de teste python3 dataset.py --sample-number 1 --image-size 256 --draw-joints true --draw-landmarks true

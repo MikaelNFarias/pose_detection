@@ -68,7 +68,8 @@ def render_mesh_textured(
         fov: float = 60.0,
         landmarks_idx=None,
         joints=None,
-        draw: bool = False,
+        draw_landmarks: bool = False,
+        draw_joints: bool = False
 ) -> Any:
     batch_size = 1
 
@@ -168,12 +169,11 @@ def render_mesh_textured(
             if name == "HEELS":
                 continue
             point = verts[idx]
-            print("POINTS",point)
             x_proj, y_proj = project_point(point, (height, width), device, cameras)
             projections_landmarks[name] = [x_proj, y_proj]
 
         projections["landmarks"] = projections_landmarks
-        if draw:
+        if draw_landmarks:
             draw_image = ImageDraw.Draw(img)
             for proj,values in projections_landmarks.items():
                 draw_image.ellipse((values[0] - 1, values[1] - 1, values[0] + 1, values[1] + 1),fill='red')
@@ -182,13 +182,12 @@ def render_mesh_textured(
     if joints is not None:
         for idx, name in SMPL_IND2JOINT.items():
             joint_point = joints[idx]
-            print(f"Nome: {name},{joint_point}")
             x_proj,y_proj = project_point(joint_point, (height, width), device, cameras)
             projections_joints[name] = [x_proj, y_proj]
 
         projections["joints"] = projections_joints
 
-        if draw:
+        if draw_joints:
             draw_image = ImageDraw.Draw(img)
             for proj, values in projections_joints.items():
                 draw_image.ellipse((values[0] - 2, values[1] - 2, values[0] + 2, values[1] + 2), fill='blue')

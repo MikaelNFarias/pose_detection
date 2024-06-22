@@ -21,7 +21,7 @@ from typing import List, Any, Optional, Sequence, Union, Dict,Tuple
 sys.path.append('../')
 
 from src.utils import *
-from src.measurer.landmark_definitions import SMPL_LANDMARK_INDICES
+from src.measurer.landmark_definitions import SMPL_LANDMARK_INDICES,SMPL_EXTENDEND_LANDMARK_INDICES, SMPL_EXTENDED_LANDMARKS
 
 
 def render(texture_image_path: str,
@@ -38,7 +38,8 @@ def render(texture_image_path: str,
            eye_position: Sequence[float] = None,
            fov: float = 60.0,
            landmarks = SMPL_LANDMARK_INDICES,
-           draw: bool = False,
+           draw_landmarks: bool = False,
+           draw_joints: bool = False,
            joints = None
     ) -> Any:
 
@@ -113,7 +114,8 @@ def render(texture_image_path: str,
             fov=fov,
             landmarks_idx=landmarks,
             joints=joints,
-            draw=draw
+            draw_landmarks=draw_landmarks,
+            draw_joints=draw_joints
         )
 
     return proj

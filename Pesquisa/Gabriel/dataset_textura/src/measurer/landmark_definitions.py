@@ -21,8 +21,19 @@ SMPL_LANDMARK_INDICES = {"HEAD_TOP": 412,
                     "LOW_LEFT_HIP": 3134,
                     "LEFT_THIGH": 947,
                     "LEFT_CALF": 1103,
-                    "LEFT_ANKLE": 3325
-                    }
+                    "LEFT_ANKLE": 3325,
+            }
+
+SMPL_EXTENDEND_LANDMARK_INDICES = {
+    "LEFT_HIP": 1229,
+    "RIGHT_HIP": 4949,
+    "MID_HIP_POINT": 3145,
+    "LOWER_BELLY_POINT":1769,
+    "LEFT_CHEST":1423
+}
+
+SMPL_EXTENDED_LANDMARKS = {**SMPL_LANDMARK_INDICES, **SMPL_EXTENDEND_LANDMARK_INDICES}
+
 
 SMPL_LANDMARK_INDICES["HEELS"] = (SMPL_LANDMARK_INDICES["LEFT_HEEL"],
                                   SMPL_LANDMARK_INDICES["RIGHT_HEEL"])
