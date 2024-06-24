@@ -225,7 +225,7 @@ class DatasetGenerator:
         return measurements, plane_data, self.measurer.joints
 
     @timer_function
-    def render_samples(self, dataset_type: str) -> None:
+    def render_samples(self, dataset_type,max_iter=10e6) -> None:
         if dataset_type == 'train':
             schema_path = self.train_schema_path
             output_dir = self.train_output_dir
@@ -241,7 +241,9 @@ class DatasetGenerator:
         with open(schema_path, 'r') as f:
             scheme = json.load(f)
 
-        for sample in scheme:
+        for idx,sample in enumerate(scheme):
+            if idx == max_iter:
+                break
             if not sample['saved']:
                 try:
                     measurements, plane_info, joints = self._measure_mesh(sample['mesh'])
@@ -356,6 +358,7 @@ if __name__ == "__main__":
     parser.add_argument('--dataset-type', type=str, default='train', help='Dataset type')
     parser.add_argument("--draw-joints", type=bool, default=False, help="Draw images")
     parser.add_argument("--draw-landmarks", type=bool, default=False, help="Draw images")
+    parser.add_argument("--max-iter", type=int, default=10e6, help="Max number of iterations")
     args = parser.parse_args()
 
     FOCAL_DISTANCES = (1.0, 1.5)
@@ -379,7 +382,7 @@ if __name__ == "__main__":
         #dataset_generator.generate_schemes(N=args.N)
 
         dataset_generator.generate_schemes(N=args.sample_number)
-        dataset_generator.render_samples(dataset_type=args.dataset_type)
+        dataset_generator.render_samples(dataset_type=args.dataset_type, max_iter=500)
 
 
     except Exception as e:

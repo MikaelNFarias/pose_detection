@@ -3,10 +3,11 @@ import shutil
 import random
 import argparse
 import sys
+from typing import List,Tuple
 sys.path.append('..')
 from src.directories import *
 
-def train_test_split_images(source_folder, train_folder, test_folder, split_ratio=0.8):
+def train_test_split_images(source_folder, train_folder, test_folder, split_ratio=0.8,file_extensions:Tuple[str]=('.obj')):
     # Create the train and test directories if they don't exist
     os.makedirs(train_folder, exist_ok=True)
     os.makedirs(test_folder, exist_ok=True)
@@ -15,7 +16,7 @@ def train_test_split_images(source_folder, train_folder, test_folder, split_rati
     all_files = os.listdir(source_folder)
     
     # Filter out non-image files (optional, depending on your file types)
-    image_files = [f for f in all_files if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+    image_files = [f for f in all_files if f.lower().endswith(file_extensions)]
     
     # Shuffle the list of files to ensure random split
     random.shuffle(image_files)
@@ -39,9 +40,9 @@ def train_test_split_images(source_folder, train_folder, test_folder, split_rati
     print(f"Testing images: {len(test_files)}")
 
 # Define your source folder and the destination folders for train and test sets
-source_folder = DOWNLOADS_DIR
-train_folder = os.path.join(BACKGROUNDS_DIR,'train')
-test_folder = os.path.join(BACKGROUNDS_DIR,'test')
+source_folder = MESHES_DIR
+train_folder = os.path.join(MESHES_DIR,'skeletex/train')
+test_folder = os.path.join(MESHES_DIR,'skeletex/test')
 print(source_folder)
 
 if __name__ == "__main__":
