@@ -6,7 +6,7 @@ import sys
 import cv2 as cv
 from PIL import Image, ImageDraw, ImageFont
 import os
-from typing import Sequence, List, Any, Tuple
+from typing import Sequence, List, Any, Tuple, Union
 from pytorch3d.structures import Meshes
 from pytorch3d.renderer import (
     look_at_view_transform,
@@ -52,24 +52,25 @@ SMPL_IND2JOINT = {
 
 
 def render_mesh_textured(
-        verts: np.ndarray | torch.Tensor,
-        textures: np.ndarray | torch.Tensor,
-        verts_uvs: np.ndarray | torch.Tensor,
-        faces_uvs: np.ndarray | torch.Tensor,
-        faces_vertices: np.ndarray | torch.Tensor,
+        verts: Union[np.ndarray , torch.Tensor],
+        textures: Union[np.ndarray , torch.Tensor],
+        verts_uvs: Union[np.ndarray , torch.Tensor],
+        faces_uvs: Union[np.ndarray , torch.Tensor],
+        faces_vertices: Union[np.ndarray , torch.Tensor],
         image_size: Tuple[int, int] = (512, 512),
-        background: np.ndarray | torch.Tensor = None,
+        background: Union[np.ndarray , torch.Tensor] = None,
         output_path: str = None,
         output_filename: str = None,
         up: Sequence = None,
         at: np.ndarray = None,
-        background_image: np.ndarray | torch.Tensor = None,
+        background_image: Union[np.ndarray , torch.Tensor] = None,
         eye_position: Sequence[float] = None,
         fov: float = 60.0,
         landmarks_idx=None,
         joints=None,
         draw_landmarks: bool = False,
-        draw_joints: bool = False
+        draw_joints: bool = False,
+        extreme_points=None
 ) -> Any:
     batch_size = 1
 
@@ -163,11 +164,13 @@ def render_mesh_textured(
     img = Image.fromarray(rgbArray)
     projections_landmarks = {}
     projections_joints = {}
+    projections_extremes = {}
     projections = {}
     if landmarks_idx is not None:
         for name,idx in landmarks_idx.items():
             if name == "HEELS":
                 continue
+            name = name.lower()
             point = verts[idx]
             x_proj, y_proj = project_point(point, (height, width), device, cameras)
             projections_landmarks[name] = [x_proj, y_proj]
@@ -194,6 +197,26 @@ def render_mesh_textured(
                 draw_image.text((values[0] + 5, values[1]), proj, fill='blue')
 
 
+    if extreme_points is not None:
+        for landmark_name in extreme_points:
+            left = torch.from_numpy(extreme_points[landmark_name]["left_extreme"].astype(np.float32))
+            right = torch.from_numpy(extreme_points[landmark_name]["right_extreme"].astype(np.float32))
+
+            left = project_point(left,(height,width),device,cameras)
+            right = project_point(right,(height,width),device,cameras)
+
+
+            #draw_image = ImageDraw.Draw(img)
+            #draw_image.ellipse((left[0] - 2, left[1] - 2, left[0] + 2, left[1] + 2), fill='blue')
+            ##draw_image.text((left[0] + 5, left[1]), proj, fill='blue')
+
+
+            #draw_image.ellipse((right[0] - 2, right[1] - 2, right[0] + 2, right[1] + 2), fill='blue')
+            projections_extremes[landmark_name] = {"leftmost":left,"rightmost":right}
+            projections["extremes"] = projections_extremes
+
+            #draw_image.text((left[0] + 5, left[1]), proj, fill='blue')
+
 
 
     if output_filename is not None:
@@ -208,14 +231,20 @@ def project_point(point: torch.Tensor,
                   image_size: Tuple[int, int],
                   device: torch.device,
                   cameras: pytorch3d.renderer.cameras.FoVPerspectiveCameras):
-    point = point[None, None, :].to(device)  # [1, 1, 3]
-    transformed_point = cameras.transform_points_screen(point,image_size=image_size)
-    test_points = transformed_point.squeeze()
+    
+    try:
+        point = point[None, None, :].to(device)  # [1, 1, 3]
+        print(point.dtype)
+        transformed_point = cameras.transform_points_screen(point,image_size=image_size)
+        test_points = transformed_point.squeeze()
 
-    # NDC to screen coordinates
-    x_proj = (test_points[..., 0])
-    y_proj = (test_points[..., 1])
-
+        # NDC to screen coordinates
+        x_proj = (test_points[..., 0])
+        y_proj = (test_points[..., 1])
+    except Exception as e:
+        print("Erro na hora de projetar pontos em 2D")
+        print(f"[ERRO] {e}")
+        sys.exit(1)
     #print(f"Screen coordinates: ({x_proj}, {y_proj})")  # Debugging output
 
     return x_proj.item(), y_proj.item()

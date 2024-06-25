@@ -25,9 +25,7 @@ def download_images(count: int,
                   "blank_wall",
                   "neutral_wall",
                   "modern_furniture",
-                  "scandinavian_interior",
-                  "cozy_corner",
-                  "textured_wall"] ## <- pode ser otimizado para encontrar resultados melhores
+                  "cozy_corner"] ## <- pode ser otimizado para encontrar resultados melhores
 
     URL = f'{BASE_URL}/{ROUTE}'
     QUERY_PARAMS = {
@@ -63,4 +61,4 @@ destination_folder = os.path.join(ROOT_DIR,'downloads')
 # Download the images
 download_images(count=30,
                 dest_folder = destination_folder,
-                pages = 5)
+                pages = 10)

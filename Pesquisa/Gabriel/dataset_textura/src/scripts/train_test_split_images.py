@@ -40,10 +40,12 @@ def train_test_split_images(source_folder, train_folder, test_folder, split_rati
     print(f"Testing images: {len(test_files)}")
 
 # Define your source folder and the destination folders for train and test sets
-source_folder = MESHES_DIR
-train_folder = os.path.join(MESHES_DIR,'skeletex/train')
-test_folder = os.path.join(MESHES_DIR,'skeletex/test')
+train_folder = os.path.join(TEXTURES_DIR,'train')
+source_folder = TEXTURES_DIR
+test_folder = os.path.join(TEXTURES_DIR,'test')
 print(source_folder)
+print(train_folder)
+print(test_folder)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Split images into train and test sets')
@@ -56,4 +58,5 @@ if __name__ == "__main__":
     train_test_split_images(source_folder=source_folder,
                             train_folder=train_folder,
                             test_folder=test_folder,
-                            split_ratio=0.8)
+                            split_ratio=0.8,
+                            file_extensions=(".png","jpg","jpeg"))

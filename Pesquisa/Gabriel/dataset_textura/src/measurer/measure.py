@@ -113,13 +113,15 @@ class Measurer():
 
             elif self.measurement_types[m_name] == MeasurementType().CIRCUMFERENCE:
 
-                value,hull,plane_origin,plane_normal = self.measure_circumference(m_name)
+                value,hull,plane_origin,plane_normal,leftmost_point,rightmost_point = self.measure_circumference(m_name)
                 self.measurements[m_name] = value
                 measure_name_slice = m_name.split('_')[0]
                 self.planes_info[measure_name_slice] = {
                     "convex_hull": hull,
                     "plane_origin":plane_origin,
-                    "plane_normal": plane_normal
+                    "plane_normal": plane_normal,
+                    "left_extreme":leftmost_point,
+                    "right_extreme":rightmost_point
 
                 }
 
@@ -207,9 +209,9 @@ class Measurer():
                                                  self.circumf_2_bodypart,
                                                  self.face_segmentation)
 
-        slice_segments_hull = convex_hull_from_3D_points(slice_segments)
+        slice_segments_hull,leftmost_point,rightmost_point = convex_hull_from_3D_points(slice_segments)
 
-        return self._get_dist(slice_segments_hull), slice_segments_hull, plane_origin, plane_normal # perimetro do fecho convexo,
+        return self._get_dist(slice_segments_hull), slice_segments_hull, plane_origin, plane_normal, leftmost_point, rightmost_point # perimetro do fecho convexo,
 
 
     def get_joints(self):

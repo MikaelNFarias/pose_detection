@@ -262,70 +262,65 @@ class DatasetGenerator:
                         fov=sample['fov'],
                         draw_landmarks=self.draw_landmarks,
                         draw_joints=self.draw_joints,
+                        extreme_points=plane_info,
                         joints=joints
                     )
 
 
                     # Save annotation
-                    match dataset_type:
-                        case 'train':
-                            render_data = sample.copy()
-                            render_data['up'] = (0, 0, 1)
-                            render_data['projections'] = proj
-                            del render_data['saved']
-                            save_to_json(
-                                os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
-                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_N_{sample['N']}"),
-                                render_data=render_data,
-                                background=Path(sample['background']).name,
-                                texture=Path(sample['texture']).name
-                            )
-                            logger.info(f"Train render Annotation saved to {TRAIN_RENDER_ANNOTATION_DIR}")
-
-                            save_to_json(
-                                os.path.join(TRAIN_MEASUREMENTS_ANNOTATION_DIR,
-                                             f"{dataset_type}_measurements_{sample['file_numeration']}"),
-                                measurements_data=format_floats(measurements),
-                                file_numeration=sample['file_numeration']
-                            )
-
-                            logger.info(f"Train measurements Annotation saved to {TRAIN_MEASUREMENTS_ANNOTATION_DIR}")
-
-                            save_to_json(
-                                os.path.join(TRAIN_PLANE_ANNOTATION_DIR,
-                                             f"{dataset_type}_plane_{sample['file_numeration']}"),
-                                plane_data=format_floats(plane_info),
-                                file_numeration=sample['file_numeration']
-                            )
-
-                            logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
-                        case 'test':
-                            render_data = sample.copy()
-                            render_data['up'] = (0, 0, 1)
-                            del render_data['saved']
-                            save_to_json(
-                                os.path.join(TEST_RENDER_ANNOTATION_DIR,
-                                             f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_N_{sample['N']}"),
-                                render_data=sample,
-                                background=Path(sample['background']).name,
-                                texture=Path(sample['texture']).name
-                            )
-
-                            save_to_json(
-                                os.path.join(TEST_MEASUREMENTS_ANNOTATION_DIR,
-                                             f"{dataset_type}_measurements_{sample['file_numeration']}"),
-                                measurements_data=format_floats(measurements),
-                                file_numeration=sample['file_numeration']
-                            )
-
-                            save_to_json(
-                                os.path.join(TEST_PLANE_ANNOTATION_DIR,
-                                             f"{dataset_type}_plane_{sample['file_numeration']}"),
-                                plane_data=format_floats(plane_info),
-                                file_numeration=sample['file_numeration']
-                            )
-                        case _:
-                            raise ValueError("Invalid dataset type. Use ['train'] or ['test'].")
+                    
+                    if dataset_type == 'train':
+                        render_data = sample.copy()
+                        render_data['up'] = (0, 0, 1)
+                        render_data['projections'] = proj
+                        del render_data['saved']
+                        save_to_json(
+                            os.path.join(TRAIN_RENDER_ANNOTATION_DIR,
+                                         f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_N_{sample['N']}"),
+                            render_data=render_data,
+                            background=Path(sample['background']).name,
+                            texture=Path(sample['texture']).name
+                        )
+                        logger.info(f"Train render Annotation saved to {TRAIN_RENDER_ANNOTATION_DIR}")
+                        save_to_json(
+                            os.path.join(TRAIN_MEASUREMENTS_ANNOTATION_DIR,
+                                         f"{dataset_type}_measurements_{sample['file_numeration']}"),
+                            measurements_data=format_floats(measurements),
+                            file_numeration=sample['file_numeration']
+                        )
+                        logger.info(f"Train measurements Annotation saved to {TRAIN_MEASUREMENTS_ANNOTATION_DIR}")
+                        save_to_json(
+                            os.path.join(TRAIN_PLANE_ANNOTATION_DIR,
+                                         f"{dataset_type}_plane_{sample['file_numeration']}"),
+                            plane_data=format_floats(plane_info),
+                            file_numeration=sample['file_numeration']
+                        )
+                        logger.info(f"Train plane Annotation saved to {TRAIN_PLANE_ANNOTATION_DIR}")
+                    elif dataset_type == 'test':
+                        render_data = sample.copy()
+                        render_data['up'] = (0, 0, 1)
+                        del render_data['saved']
+                        save_to_json(
+                            os.path.join(TEST_RENDER_ANNOTATION_DIR,
+                                         f"{dataset_type}_render_{sample['file_numeration']}_{sample['view']}_N_{sample['N']}"),
+                            render_data=sample,
+                            background=Path(sample['background']).name,
+                            texture=Path(sample['texture']).name
+                        )
+                        save_to_json(
+                            os.path.join(TEST_MEASUREMENTS_ANNOTATION_DIR,
+                                         f"{dataset_type}_measurements_{sample['file_numeration']}"),
+                            measurements_data=format_floats(measurements),
+                            file_numeration=sample['file_numeration']
+                        )
+                        save_to_json(
+                            os.path.join(TEST_PLANE_ANNOTATION_DIR,
+                                         f"{dataset_type}_plane_{sample['file_numeration']}"),
+                            plane_data=format_floats(plane_info),
+                            file_numeration=sample['file_numeration']
+                        )
+                    else:
+                        raise ValueError("Invalid dataset type. Use ['train'] or ['test'].")
 
                     sample['saved'] = True
 
@@ -382,7 +377,7 @@ if __name__ == "__main__":
         #dataset_generator.generate_schemes(N=args.N)
 
         dataset_generator.generate_schemes(N=args.sample_number)
-        dataset_generator.render_samples(dataset_type=args.dataset_type, max_iter=500)
+        dataset_generator.render_samples(dataset_type=args.dataset_type, max_iter=10e6)
 
 
     except Exception as e:

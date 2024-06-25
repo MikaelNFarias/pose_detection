@@ -34,12 +34,13 @@ def render(texture_image_path: str,
            dataset: str = 'skeletex',
            image_size: int = 128,
            sample_number: int = None,
-           background_image_path: str | None = None,
+           background_image_path: Union[str, None] = None,
            eye_position: Sequence[float] = None,
            fov: float = 60.0,
            landmarks = SMPL_LANDMARK_INDICES,
            draw_landmarks: bool = False,
            draw_joints: bool = False,
+           extreme_points=None,
            joints = None
     ) -> Any:
 
@@ -115,6 +116,7 @@ def render(texture_image_path: str,
             landmarks_idx=landmarks,
             joints=joints,
             draw_landmarks=draw_landmarks,
+            extreme_points=extreme_points,
             draw_joints=draw_joints
         )
 

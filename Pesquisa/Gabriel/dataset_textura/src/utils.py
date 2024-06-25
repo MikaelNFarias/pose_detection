@@ -100,7 +100,12 @@ def convex_hull_from_3D_points(slice_segments: np.ndarray):
     slice_segments_hull = unique_segment_points[segment_point_hull_inds]
     slice_segments_hull = slice_segments_hull.reshape(-1, 2, 3)
 
-    return slice_segments_hull
+    leftmost_index = np.argmin(slice_segments_hull[:, 0, 0])
+    rightmost_index = np.argmax(slice_segments_hull[:, 0, 0])
+    leftmost_point = slice_segments_hull[leftmost_index, 0, :]
+    rightmost_point = slice_segments_hull[rightmost_index, 0, :]
+
+    return slice_segments_hull, leftmost_point, rightmost_point
 
 
 def filter_body_part_slices(slice_segments: np.ndarray,
