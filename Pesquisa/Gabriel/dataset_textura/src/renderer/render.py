@@ -105,7 +105,7 @@ def render(texture_image_path: str,
             textures=texture_image,
             verts_uvs=smpl_verts_uvs,
             faces_uvs=smpl_faces_uvs,
-            faces_vertices=obj_facets.verts_idx,
+            faces_vertices=smpl_faces.verts_idx,
             image_size=(image_size,image_size),  # image resolution  # camera position
             output_path=os.path.join(output_path,view),
             output_filename=file_name,
