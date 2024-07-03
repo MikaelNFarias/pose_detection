@@ -1,5 +1,6 @@
 src/teste.py
 .idea/
+src/1.10.0.tar.gz
 venv/
 env/
 src/__pycache__/
@@ -15,7 +16,7 @@ data/schemas/train/*
 data/textures/test/*
 data/textures/train/*
 dataset/
-
+src/cub-1.10.0
 !.gitignore
 !data/background/test/.gitkeep
 !data/background/train/.gitkeep

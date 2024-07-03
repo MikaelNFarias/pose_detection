@@ -9,12 +9,14 @@ import sys
 import argparse
 
 from measurement_definitions import *
-#from visualize import Visualizer
+from visualize import Visualizer
 from landmark_definitions import *
 from joint_definitions import *
 
 sys.path.append('../')
 from src.utils import *
+from src.directories import MESHES_DIR, ROOT_DIR
+print(MESHES_DIR)
 
 # import pytorch3d  load obj
 
@@ -497,7 +499,7 @@ class MeasureBody():
 
 if __name__ == "__main__":
 
-    model_types_to_measure = ['smpl']
+    model_types_to_measure = ['smplx']
 
     for model_type in model_types_to_measure:
         print(f"Measuring {model_type} body model")
@@ -505,7 +507,8 @@ if __name__ == "__main__":
 
         betas = torch.zeros((1, 10), dtype=torch.float32)
 
-        verts, faces, aux = load_obj("../../sample_data/049997_shape.obj")
+        verts, faces, aux = load_obj(os.path.join(ROOT_DIR, f"powerful-cornflower-blue-undergrowth.obj"))
+        print(verts.shape)
         measurer.from_verts(verts)
 
         measurement_names = measurer.all_possible_measurements
@@ -516,4 +519,4 @@ if __name__ == "__main__":
         measurer.label_measurements(STANDARD_LABELS)
         print("Labeled measurements")
         pprint(measurer.labeled_measurements)
-        #measurer.visualize(title=f"{model_type} body model measurements")
+        measurer.visualize(title=f"{model_type} body model measurements")

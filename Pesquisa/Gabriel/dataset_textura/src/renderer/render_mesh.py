@@ -153,15 +153,20 @@ def render_mesh_textured(
         ),
     )
 
-    images = renderer(mesh)
-    R_channel = images[0, :, :, 0].detach().cpu().numpy()
-    G_channel = images[0, :, :, 1].detach().cpu().numpy()
-    B_channel = images[0, :, :, 2].detach().cpu().numpy()
-    rgbArray = np.zeros((height, width, 3), "uint8")
-    rgbArray[..., 0] = (R_channel * 255).astype(int)
-    rgbArray[..., 1] = (G_channel * 255).astype(int)
-    rgbArray[..., 2] = (B_channel * 255).astype(int)
-    img = Image.fromarray(rgbArray)
+    try:
+        images = renderer(mesh)
+        R_channel = images[0, :, :, 0].detach().cpu().numpy()
+        G_channel = images[0, :, :, 1].detach().cpu().numpy()
+        B_channel = images[0, :, :, 2].detach().cpu().numpy()
+        rgbArray = np.zeros((height, width, 3), "uint8")
+        rgbArray[..., 0] = (R_channel * 255).astype(int)
+        rgbArray[..., 1] = (G_channel * 255).astype(int)
+        rgbArray[..., 2] = (B_channel * 255).astype(int)
+        img = Image.fromarray(rgbArray)
+    
+    except Exception as e:
+        print(e)
+        sys.exit()
     projections_landmarks = {}
     projections_joints = {}
     projections_extremes = {}
@@ -234,7 +239,6 @@ def project_point(point: torch.Tensor,
     
     try:
         point = point[None, None, :].to(device)  # [1, 1, 3]
-        print(point.dtype)
         transformed_point = cameras.transform_points_screen(point,image_size=image_size)
         test_points = transformed_point.squeeze()
 

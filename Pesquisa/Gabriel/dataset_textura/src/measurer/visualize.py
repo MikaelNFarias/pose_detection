@@ -277,7 +277,7 @@ class Visualizer():
                                                  self.circumf_2_bodypart,
                                                  self.face_segmentation)
 
-        slice_segments_hull = convex_hull_from_3D_points(slice_segments)
+        slice_segments_hull, _, _ = convex_hull_from_3D_points(slice_segments)
 
         draw_segments = {"x": [], "y": [], "z": []}
         map_ax = {0: "x", 1: "y", 2: "z"}

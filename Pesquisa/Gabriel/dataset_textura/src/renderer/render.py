@@ -12,7 +12,6 @@ from render_mesh import render_mesh_textured
 import smplx as SMPL
 from pytorch3d.io import load_obj
 import logging
-# Load the OBJ file
 import cv2 as cv
 import re
 from typing import List, Any, Optional, Sequence, Union, Dict,Tuple
@@ -69,8 +68,11 @@ def render(texture_image_path: str,
 
     if background_image_path is not None:
         background_image = cv.imread(background_image_path)
-        background_image = cv.resize(background_image, dsize=(image_size, image_size), interpolation=cv.INTER_CUBIC)
-
+        try:
+            background_image = cv.resize(background_image, dsize=(image_size, image_size), interpolation=cv.INTER_CUBIC)
+        except Exception as e:
+            print(e)
+            pass
     ##get the numeration on texture image file
     file_numeration: str | None = extract_numeration(obj_mesh_path)
     

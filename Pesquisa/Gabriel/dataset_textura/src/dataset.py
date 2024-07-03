@@ -224,6 +224,10 @@ class DatasetGenerator:
 
         return measurements, plane_data, self.measurer.joints
 
+    def measure_samples():
+        pass 
+
+    
     @timer_function
     def render_samples(self, dataset_type,max_iter=10e6) -> None:
         if dataset_type == 'train':
@@ -385,3 +389,4 @@ if __name__ == "__main__":
         sys.exit(1)
 #cd src/
 #comando de teste python3 dataset.py --sample-number 1 --image-size 256 --draw-joints true --draw-landmarks true
+#comando para rodar de fato python3 dataset.py --sample-number 1 --image-size 1024
